@@ -1,13 +1,260 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>my-portfolio</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eddie — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Instrument+Serif&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --fg: #2c2c2c;
+      --fg-muted: #7a7a7a;
+      --bg: #fafaf8;
+      --border: #e8e8e4;
+      --accent: #3d3d3d;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+      --mono: 'DM Mono', ui-monospace, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e4e4e0;
+        --fg-muted: #8a8a86;
+        --bg: #141413;
+        --border: #2a2a28;
+        --accent: #d4d4d0;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 17px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--sans);
+      color: var(--fg);
+      background: var(--bg);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- layout ---------- */
+    .page {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 120px 24px 80px;
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 72px 20px 56px;
+      }
+    }
+
+    /* ---------- intro ---------- */
+    .intro {
+      margin-bottom: 64px;
+    }
+
+    .intro h1 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 3rem;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      color: var(--fg);
+      margin-bottom: 12px;
+    }
+
+    .intro .tagline {
+      font-size: 1.05rem;
+      color: var(--fg-muted);
+      font-weight: 300;
+      letter-spacing: 0.2px;
+    }
+
+    /* ---------- about ---------- */
+    .about {
+      margin-bottom: 56px;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--fg-muted);
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .about p {
+      color: var(--fg);
+      font-weight: 300;
+      font-size: 1rem;
+      margin-bottom: 16px;
+    }
+
+    .about p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ---------- details ---------- */
+    .details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 56px;
+      padding-top: 56px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 480px) {
+      .details {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+    }
+
+    .detail-group .detail-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--fg-muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .detail-group .detail-value {
+      font-size: 0.95rem;
+      color: var(--fg);
+      font-weight: 400;
+    }
+
+    /* ---------- links ---------- */
+    .links {
+      padding-top: 56px;
+      border-top: 1px solid var(--border);
+    }
+
+    .links-list {
+      list-style: none;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .links-list a {
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 400;
+      padding-bottom: 2px;
+      border-bottom: 1px solid var(--border);
+      transition: border-color 0.25s ease, color 0.25s ease;
+    }
+
+    .links-list a:hover {
+      border-bottom-color: var(--fg);
+    }
+
+    /* ---------- entrance animation ---------- */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.7s ease forwards;
+    }
+
+    .fade-in:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .fade-in:nth-child(2) {
+      animation-delay: 0.12s;
+    }
+
+    .fade-in:nth-child(3) {
+      animation-delay: 0.24s;
+    }
+
+    .fade-in:nth-child(4) {
+      animation-delay: 0.36s;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="intro fade-in">
+      <h1>Eddie</h1>
+      <p class="tagline">Lorem ipsum dolor</p>
+    </div>
+
+    <div class="about fade-in">
+      <p class="section-label">About</p>
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem
+        placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar
+        vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere.
+        Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+      </p>
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem
+        placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar
+        vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere.
+        Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
+      </p>
+    </div>
+
+    <div class="details fade-in">
+      <div class="detail-group">
+        <p class="detail-label">Focus</p>
+        <p class="detail-value">Lorem ipsum dolor</p>
+      </div>
+      <div class="detail-group">
+        <p class="detail-label">Currently</p>
+        <p class="detail-value">Lorem ipsum dolor</p>
+      </div>
+      <div class="detail-group">
+        <p class="detail-label">Coursework</p>
+        <p class="detail-value">Lorem ipsum dolor</p>
+      </div>
+      <div class="detail-group">
+        <p class="detail-label">Languages</p>
+        <p class="detail-value">Lorem ipsum dolor</p>
+      </div>
+    </div>
+
+    <div class="links fade-in">
+      <p class="section-label">Elsewhere</p>
+      <ul class="links-list">
+        <li><a href="https://www.google.com/" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://www.google.com/" target="_blank" rel="noopener">LinkedIn</a></li>
+        <li><a href="https://www.google.com/">Email</a></li>
+      </ul>
+    </div>
+
+  </div>
+</body>
+
 </html>
