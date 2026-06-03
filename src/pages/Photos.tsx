@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useDevice, DEVICE_CONFIG } from '../hooks/useDevice'
 import { fetchPhotos } from '../lib/api'
 import type { Photo } from '../types'
 import deadfile from '../assets/deadfile.png'
@@ -73,6 +74,8 @@ function colorDistance(a: string, b: string): number {
 
 export default function Photos() {
   const navigate = useNavigate()
+  const device = useDevice()
+  const cfg = DEVICE_CONFIG[device]
   const [photos, setPhotos] = useState<Photo[]>(MOCK)
   const [category, setCategory] = useState('All')
   const [colorFilter, setColorFilter] = useState<string | null>(null)
@@ -111,7 +114,7 @@ export default function Photos() {
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
 
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 px-10 py-3 flex items-center gap-3 flex-wrap transition-colors duration-500">
+      <div className="sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 py-3 flex items-center gap-3 flex-wrap transition-colors duration-500" style={{ paddingLeft: cfg.photoHeaderPx, paddingRight: cfg.photoHeaderPx }}>
 
         {/* Back */}
         <button
@@ -208,7 +211,7 @@ export default function Photos() {
       </div>
 
       {/* Masonry grid */}
-      <div className="columns-2 md:columns-3 lg:columns-4 gap-4 px-20 py-8">
+      <div className={`${cfg.photoColumns} gap-4 py-8`} style={{ paddingLeft: cfg.photoGridPx, paddingRight: cfg.photoGridPx }}>
         {filtered.map(photo => (
           <div
             key={photo.id}

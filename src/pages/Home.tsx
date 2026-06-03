@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { GitHubCalendar } from 'react-github-calendar'
 import profileImg from '../assets/deadfile.png'
+import { useDevice, DEVICE_CONFIG } from '../hooks/useDevice'
 
 const GITHUB_USERNAME = 'edwurdL'
 
@@ -14,6 +15,8 @@ const SOCIALS = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const device = useDevice()
+  const cfg = DEVICE_CONFIG[device]
   const scrollRef = useRef<HTMLDivElement>(null)
   const calendarRef = useRef<HTMLDivElement>(null)
   const sectionRef = useRef(0)
@@ -161,22 +164,23 @@ export default function Home() {
     >
       {/* Section 1 — Bio */}
       <section
-        className="snap-start h-screen flex flex-col px-15 pt-35 pb-8"
-        style={{ opacity: bioOpacity, transition: 'opacity 0.25s ease-out' }}
+        className="snap-start h-screen flex flex-col"
+        style={{ paddingLeft: cfg.sectionPx, paddingRight: cfg.sectionPx, paddingTop: cfg.sectionPt, paddingBottom: cfg.sectionPb, opacity: bioOpacity, transition: 'opacity 0.25s ease-out' }}
       >
         <div className="flex-1 flex flex-col justify-start">
           <div className="mx-auto max-w-[110rem] flex flex-col gap-5">
             <img
               src={profileImg}
               alt="Profile"
-              className="w-50 h-50 rounded-lg object-cover"
+              className="rounded-lg object-cover"
+              style={{ width: cfg.profileSize, height: cfg.profileSize }}
             />
 
-            <h1 className="font-serif text-4xl text-zinc-900 dark:text-zinc-100 leading-none">
+            <h1 className="font-serif text-zinc-900 dark:text-zinc-100 leading-none" style={{ fontSize: cfg.fontSize.name }}>
               Eddie
             </h1>
 
-            <p className="text-justify text-zinc-600 dark:text-zinc-400 text-3xl leading-relaxed">
+            <p className="text-justify text-zinc-600 dark:text-zinc-400 leading-relaxed" style={{ fontSize: cfg.fontSize.bio }}>
               Section. 1.
 All legislative Powers herein granted shall be vested in a Congress of the United States, which shall consist of a Senate and House of Representatives.
 
@@ -193,7 +197,8 @@ No Person shall be a Representative who shall not have attained to the Age of tw
                   href={href}
                   target={href.startsWith('http') ? '_blank' : undefined}
                   rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="text-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border-b border-transparent hover:border-zinc-400 dark:hover:border-zinc-500 pb-px"
+                  className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border-b border-transparent hover:border-zinc-400 dark:hover:border-zinc-500 pb-px"
+                  style={{ fontSize: cfg.fontSize.socials }}
                 >
                   {label}
                 </a>
@@ -202,19 +207,20 @@ No Person shall be a Representative who shall not have attained to the Age of tw
           </div>
         </div>
 
-        <div className="mx-auto max-w-[110rem] w-full flex gap-4 mb-6">
+        <div className="mx-auto max-w-[110rem] w-full flex mb-6" style={{ gap: cfg.gap, flexDirection: cfg.navBoxDir }}>
           {['Projects', 'Photos', 'Coursework'].map((label) => (
             <button
               key={label}
               onClick={() => navigate(`/${label.toLowerCase()}`)}
-              className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-8 py-12 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer flex justify-between items-end overflow-hidden"
+              className="flex-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer flex justify-between items-end overflow-hidden"
+              style={{ paddingLeft: cfg.navBoxPx, paddingRight: cfg.navBoxPx, paddingTop: cfg.navBoxPy, paddingBottom: cfg.navBoxPy }}
             >
               <div>
                 <p className="text-sm uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-600 mb-3">{label}</p>
                 <p className="text-xl text-zinc-500 dark:text-zinc-500">→</p>
               </div>
               <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden flex-shrink-0">
-                <img src={profileImg} alt="" className="w-28 h-28 object-cover opacity-60" />
+                <img src={profileImg} alt="" className="object-cover opacity-60" style={{ width: cfg.navBoxImgSize, height: cfg.navBoxImgSize }} />
               </div>
             </button>
           ))}
@@ -233,8 +239,8 @@ No Person shall be a Representative who shall not have attained to the Age of tw
 
       {/* Section 2 — Analytics */}
       <section
-        className="snap-start h-screen flex flex-col items-center justify-top px-40 py-16"
-        style={{ opacity: analyticsOpacity, transition: 'opacity 0.25s ease-out' }}
+        className="snap-start h-screen flex flex-col items-center justify-top"
+        style={{ paddingLeft: cfg.analyticsPx, paddingRight: cfg.analyticsPx, paddingTop: '4rem', paddingBottom: '4rem', opacity: analyticsOpacity, transition: 'opacity 0.25s ease-out' }}
       >
         <button
           onClick={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
