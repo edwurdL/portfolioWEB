@@ -219,9 +219,9 @@ No Person shall be a Representative who shall not have attained to the Age of tw
                 <p className="text-sm uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-600 mb-3">{label}</p>
                 <p className="text-xl text-zinc-500 dark:text-zinc-500">→</p>
               </div>
-              <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden flex-shrink-0">
+              {cfg.navBoxImgShow && <div className="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden flex-shrink-0">
                 <img src={profileImg} alt="" className="object-cover opacity-60" style={{ width: cfg.navBoxImgSize, height: cfg.navBoxImgSize }} />
-              </div>
+              </div>}
             </button>
           ))}
         </div>

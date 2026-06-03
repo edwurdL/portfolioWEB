@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDevice, DEVICE_CONFIG } from '../hooks/useDevice'
 import { fetchPhotos } from '../lib/api'
+import { createPhoto } from '../types'
 import type { Photo } from '../types'
 import deadfile from '../assets/deadfile.png'
 
@@ -20,37 +21,37 @@ const COLOR_SWATCHES = [
   { label: 'Light',   hex: '#e4e4e7' },
 ]
 
-const MOCK: Photo[] = [
-  { id:'1',  url:deadfile, ratio:'3/4',  category:'Animal',       prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4', focalLength:'85mm',  iso:400,  date:'2024-11-03', location:'Ann Arbor, MI',     descriptor:'Golden hour in the field' } },
-  { id:'2',  url:deadfile, ratio:'4/3',  category:'Landscape',    prominentColor:'#2563eb', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8', focalLength:'24mm',  iso:100,  date:'2024-09-14', location:'Sleeping Bear, MI',  descriptor:'Dune at dusk' } },
-  { id:'3',  url:deadfile, ratio:'1/1',  category:'Portrait',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2', focalLength:'50mm',  iso:800,  date:'2024-10-22', location:'Detroit, MI',        descriptor:'Street portrait' } },
-  { id:'4',  url:deadfile, ratio:'2/3',  category:'Street',       prominentColor:'#1c1917', meta:{ camera:'Sony A7IV', lens:'35mm f/2',   focalLength:'35mm',  iso:1600, date:'2024-08-05', location:'Chicago, IL',        descriptor:'Late night downtown' } },
-  { id:'5',  url:deadfile, ratio:'16/9', category:'Landscape',    prominentColor:'#0891b2', meta:{ camera:'Sony A7IV', lens:'16mm f/2.8', focalLength:'16mm',  iso:200,  date:'2024-07-18', location:'Lake Michigan',       descriptor:'Wide open water' } },
-  { id:'6',  url:deadfile, ratio:'3/4',  category:'Animal',       prominentColor:'#ca8a04', meta:{ camera:'Sony A7IV', lens:'200mm f/4',  focalLength:'200mm', iso:2000, date:'2024-06-30', location:'UP, MI',             descriptor:'Red fox at dawn' } },
-  { id:'7',  url:deadfile, ratio:'1/1',  category:'Portrait',     prominentColor:'#e4e4e7', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4', focalLength:'85mm',  iso:320,  date:'2024-05-11', location:'Ann Arbor, MI',      descriptor:'Overcast light' } },
-  { id:'8',  url:deadfile, ratio:'4/5',  category:'Architecture', prominentColor:'#71717a', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8', focalLength:'24mm',  iso:100,  date:'2024-04-02', location:'Chicago, IL',        descriptor:'Brutalist facade' } },
-  { id:'9',  url:deadfile, ratio:'3/2',  category:'Landscape',    prominentColor:'#dc2626', meta:{ camera:'Sony A7IV', lens:'35mm f/2',   focalLength:'35mm',  iso:100,  date:'2024-03-20', location:'Pictured Rocks, MI', descriptor:'Sunset cliffs' } },
-  { id:'10', url:deadfile, ratio:'2/3',  category:'Street',       prominentColor:'#7c3aed', meta:{ camera:'Sony A7IV', lens:'35mm f/2',   focalLength:'35mm',  iso:3200, date:'2024-02-14', location:'Detroit, MI',        descriptor:'Neon reflections' } },
-  { id:'11', url:deadfile, ratio:'1/1',  category:'Abstract',     prominentColor:'#2563eb', meta:{ camera:'Sony A7IV', lens:'100mm macro',focalLength:'100mm', iso:640,  date:'2024-01-08', location:'Studio',             descriptor:'Water droplet study' } },
-  { id:'12', url:deadfile, ratio:'4/3',  category:'Portrait',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4', focalLength:'85mm',  iso:400,  date:'2023-12-24', location:'Ann Arbor, MI',      descriptor:'Winter light' } },
-  { id:'13', url:deadfile, ratio:'2/3',  category:'Landscape',    prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8', focalLength:'24mm',  iso:100,  date:'2023-11-10', location:'Porcupine Mtns, MI',  descriptor:'Autumn ridge' } },
-  { id:'14', url:deadfile, ratio:'3/4',  category:'Street',       prominentColor:'#1c1917', meta:{ camera:'Sony A7IV', lens:'35mm f/2',   focalLength:'35mm',  iso:2500, date:'2023-10-05', location:'New York, NY',        descriptor:'Subway platform' } },
-  { id:'15', url:deadfile, ratio:'1/1',  category:'Abstract',     prominentColor:'#dc2626', meta:{ camera:'Sony A7IV', lens:'100mm macro',focalLength:'100mm', iso:200,  date:'2023-09-18', location:'Studio',              descriptor:'Flame study' } },
-  { id:'16', url:deadfile, ratio:'16/9', category:'Landscape',    prominentColor:'#ca8a04', meta:{ camera:'Sony A7IV', lens:'16mm f/2.8', focalLength:'16mm',  iso:100,  date:'2023-08-22', location:'Dunes, MI',           descriptor:'Golden hour sand' } },
-  { id:'17', url:deadfile, ratio:'4/5',  category:'Portrait',     prominentColor:'#7c3aed', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4', focalLength:'85mm',  iso:1600, date:'2023-07-14', location:'Detroit, MI',         descriptor:'Stage lights' } },
-  { id:'18', url:deadfile, ratio:'3/2',  category:'Animal',       prominentColor:'#0891b2', meta:{ camera:'Sony A7IV', lens:'400mm f/5.6',focalLength:'400mm', iso:3200, date:'2023-06-01', location:'Lake Erie',            descriptor:'Heron at dawn' } },
-  { id:'19', url:deadfile, ratio:'2/3',  category:'Architecture', prominentColor:'#e4e4e7', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8', focalLength:'24mm',  iso:100,  date:'2023-05-09', location:'Chicago, IL',         descriptor:'Glass tower' } },
-  { id:'20', url:deadfile, ratio:'1/1',  category:'Street',       prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'35mm f/2',   focalLength:'35mm',  iso:800,  date:'2023-04-17', location:'Ann Arbor, MI',       descriptor:'Farmers market' } },
-  { id:'21', url:deadfile, ratio:'4/3',  category:'Landscape',    prominentColor:'#2563eb', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2', focalLength:'50mm',  iso:100,  date:'2023-03-30', location:'Lake Superior',        descriptor:'Ice shelf breakup' } },
-  { id:'22', url:deadfile, ratio:'3/4',  category:'Portrait',     prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4', focalLength:'85mm',  iso:400,  date:'2023-02-12', location:'Studio',              descriptor:'Environmental portrait' } },
-  { id:'23', url:deadfile, ratio:'2/3',  category:'Abstract',     prominentColor:'#7c3aed', meta:{ camera:'Sony A7IV', lens:'100mm macro',focalLength:'100mm', iso:320,  date:'2023-01-25', location:'Studio',              descriptor:'Ink diffusion' } },
-  { id:'24', url:deadfile, ratio:'16/9', category:'Animal',       prominentColor:'#ca8a04', meta:{ camera:'Sony A7IV', lens:'200mm f/4',  focalLength:'200mm', iso:1600, date:'2022-12-08', location:'UP, MI',              descriptor:'Deer in snow' } },
-  { id:'25', url:deadfile, ratio:'4/5',  category:'Architecture', prominentColor:'#71717a', meta:{ camera:'Sony A7IV', lens:'35mm f/2',   focalLength:'35mm',  iso:100,  date:'2022-11-03', location:'Detroit, MI',         descriptor:'Abandoned factory' } },
-  { id:'26', url:deadfile, ratio:'3/2',  category:'Street',       prominentColor:'#dc2626', meta:{ camera:'Sony A7IV', lens:'35mm f/2',   focalLength:'35mm',  iso:1250, date:'2022-10-19', location:'Chicago, IL',         descriptor:'Red line rush hour' } },
-  { id:'27', url:deadfile, ratio:'1/1',  category:'Landscape',    prominentColor:'#0891b2', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8', focalLength:'24mm',  iso:100,  date:'2022-09-07', location:'Apostle Islands, WI',  descriptor:'Sea cave reflection' } },
-  { id:'28', url:deadfile, ratio:'2/3',  category:'Portrait',     prominentColor:'#1c1917', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2', focalLength:'50mm',  iso:3200, date:'2022-08-14', location:'Detroit, MI',         descriptor:'Low key study' } },
-  { id:'29', url:deadfile, ratio:'4/3',  category:'Animal',       prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'400mm f/5.6',focalLength:'400mm', iso:800,  date:'2022-07-22', location:'Kalamazoo, MI',        descriptor:'Monarch on milkweed' } },
-  { id:'30', url:deadfile, ratio:'3/4',  category:'Abstract',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'100mm macro',focalLength:'100mm', iso:640,  date:'2022-06-03', location:'Studio',              descriptor:'Rust texture' } },
+const MOCK: Required<Photo>[] = [
+  { id:'1',  url:deadfile, ratio:'3/4',  category:'Animal',       prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4',  focalLength:'85mm',  shutterSpeed:'1/500s',  aperture:'f/1.4', iso:400,  date:'2024-11-03', location:'Ann Arbor, MI',     descriptor:'Golden hour in the field' } },
+  { id:'2',  url:deadfile, ratio:'4/3',  category:'Landscape',    prominentColor:'#2563eb', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8',  focalLength:'24mm',  shutterSpeed:'1/250s',  aperture:'f/8', iso:100,  date:'2024-09-14', location:'Sleeping Bear, MI',  descriptor:'Dune at dusk' } },
+  { id:'3',  url:deadfile, ratio:'1/1',  category:'Portrait',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2',  focalLength:'50mm',  shutterSpeed:'1/125s',  aperture:'f/1.8', iso:800,  date:'2024-10-22', location:'Detroit, MI',        descriptor:'Street portrait' } },
+  { id:'4',  url:deadfile, ratio:'2/3',  category:'Street',       prominentColor:'#1c1917', meta:{ camera:'Sony A7IV', lens:'35mm f/2',    focalLength:'35mm',  shutterSpeed:'1/60s',   aperture:'f/2', iso:1600, date:'2024-08-05', location:'Chicago, IL',        descriptor:'Late night downtown' } },
+  { id:'5',  url:deadfile, ratio:'16/9', category:'Landscape',    prominentColor:'#0891b2', meta:{ camera:'Sony A7IV', lens:'16mm f/2.8',  focalLength:'16mm',  shutterSpeed:'1/1000s', aperture:'f/11', iso:200,  date:'2024-07-18', location:'Lake Michigan',       descriptor:'Wide open water' } },
+  { id:'6',  url:deadfile, ratio:'3/4',  category:'Animal',       prominentColor:'#ca8a04', meta:{ camera:'Sony A7IV', lens:'200mm f/4',   focalLength:'200mm', shutterSpeed:'1/2000s', aperture:'f/4', iso:2000, date:'2024-06-30', location:'UP, MI',             descriptor:'Red fox at dawn' } },
+  { id:'7',  url:deadfile, ratio:'1/1',  category:'Portrait',     prominentColor:'#e4e4e7', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4',  focalLength:'85mm',  shutterSpeed:'1/200s',  aperture:'f/1.6', iso:320,  date:'2024-05-11', location:'Ann Arbor, MI',      descriptor:'Overcast light' } },
+  { id:'8',  url:deadfile, ratio:'4/5',  category:'Architecture', prominentColor:'#71717a', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8',  focalLength:'24mm',  shutterSpeed:'1/100s',  aperture:'f/8', iso:100,  date:'2024-04-02', location:'Chicago, IL',        descriptor:'Brutalist facade' } },
+  { id:'9',  url:deadfile, ratio:'3/2',  category:'Landscape',    prominentColor:'#dc2626', meta:{ camera:'Sony A7IV', lens:'35mm f/2',    focalLength:'35mm',  shutterSpeed:'1/30s',   aperture:'f/11', iso:100,  date:'2024-03-20', location:'Pictured Rocks, MI', descriptor:'Sunset cliffs' } },
+  { id:'10', url:deadfile, ratio:'2/3',  category:'Street',       prominentColor:'#7c3aed', meta:{ camera:'Sony A7IV', lens:'35mm f/2',    focalLength:'35mm',  shutterSpeed:'1/15s',   aperture:'f/2', iso:3200, date:'2024-02-14', location:'Detroit, MI',        descriptor:'Neon reflections' } },
+  { id:'11', url:deadfile, ratio:'1/1',  category:'Abstract',     prominentColor:'#2563eb', meta:{ camera:'Sony A7IV', lens:'100mm macro', focalLength:'100mm', shutterSpeed:'1/400s',  aperture:'f/16', iso:640,  date:'2024-01-08', location:'Studio',             descriptor:'Water droplet study' } },
+  { id:'12', url:deadfile, ratio:'4/3',  category:'Portrait',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4',  focalLength:'85mm',  shutterSpeed:'1/160s',  aperture:'f/2', iso:400,  date:'2023-12-24', location:'Ann Arbor, MI',      descriptor:'Winter light' } },
+  { id:'13', url:deadfile, ratio:'2/3',  category:'Landscape',    prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8',  focalLength:'24mm',  shutterSpeed:'1/320s',  aperture:'f/9', iso:100,  date:'2023-11-10', location:'Porcupine Mtns, MI', descriptor:'Autumn ridge' } },
+  { id:'14', url:deadfile, ratio:'3/4',  category:'Street',       prominentColor:'#1c1917', meta:{ camera:'Sony A7IV', lens:'35mm f/2',    focalLength:'35mm',  shutterSpeed:'1/80s',   aperture:'f/2', iso:2500, date:'2023-10-05', location:'New York, NY',       descriptor:'Subway platform' } },
+  { id:'15', url:deadfile, ratio:'1/1',  category:'Abstract',     prominentColor:'#dc2626', meta:{ camera:'Sony A7IV', lens:'100mm macro', focalLength:'100mm', shutterSpeed:'1/1600s', aperture:'f/8', iso:200,  date:'2023-09-18', location:'Studio',             descriptor:'Flame study' } },
+  { id:'16', url:deadfile, ratio:'16/9', category:'Landscape',    prominentColor:'#ca8a04', meta:{ camera:'Sony A7IV', lens:'16mm f/2.8',  focalLength:'16mm',  shutterSpeed:'1/800s',  aperture:'f/10', iso:100,  date:'2023-08-22', location:'Dunes, MI',          descriptor:'Golden hour sand' } },
+  { id:'17', url:deadfile, ratio:'4/5',  category:'Portrait',     prominentColor:'#7c3aed', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4',  focalLength:'85mm',  shutterSpeed:'1/200s',  aperture:'f/1.4', iso:1600, date:'2023-07-14', location:'Detroit, MI',        descriptor:'Stage lights' } },
+  { id:'18', url:deadfile, ratio:'3/2',  category:'Animal',       prominentColor:'#0891b2', meta:{ camera:'Sony A7IV', lens:'400mm f/5.6', focalLength:'400mm', shutterSpeed:'1/3200s', aperture:'f/5.6', iso:3200, date:'2023-06-01', location:'Lake Erie',           descriptor:'Heron at dawn' } },
+  { id:'19', url:deadfile, ratio:'2/3',  category:'Architecture', prominentColor:'#e4e4e7', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8',  focalLength:'24mm',  shutterSpeed:'1/200s',  aperture:'f/8', iso:100,  date:'2023-05-09', location:'Chicago, IL',        descriptor:'Glass tower' } },
+  { id:'20', url:deadfile, ratio:'1/1',  category:'Street',       prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'35mm f/2',    focalLength:'35mm',  shutterSpeed:'1/250s',  aperture:'f/4', iso:800,  date:'2023-04-17', location:'Ann Arbor, MI',      descriptor:'Farmers market' } },
+  { id:'21', url:deadfile, ratio:'4/3',  category:'Landscape',    prominentColor:'#2563eb', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2',  focalLength:'50mm',  shutterSpeed:'1/500s',  aperture:'f/8', iso:100,  date:'2023-03-30', location:'Lake Superior',       descriptor:'Ice shelf breakup' } },
+  { id:'22', url:deadfile, ratio:'3/4',  category:'Portrait',     prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4',  focalLength:'85mm',  shutterSpeed:'1/125s',  aperture:'f/2.8', iso:400,  date:'2023-02-12', location:'Studio',             descriptor:'Environmental portrait' } },
+  { id:'23', url:deadfile, ratio:'2/3',  category:'Abstract',     prominentColor:'#7c3aed', meta:{ camera:'Sony A7IV', lens:'100mm macro', focalLength:'100mm', shutterSpeed:'1/640s',  aperture:'f/11', iso:320,  date:'2023-01-25', location:'Studio',             descriptor:'Ink diffusion' } },
+  { id:'24', url:deadfile, ratio:'16/9', category:'Animal',       prominentColor:'#ca8a04', meta:{ camera:'Sony A7IV', lens:'200mm f/4',   focalLength:'200mm', shutterSpeed:'1/1000s', aperture:'f/5.6', iso:1600, date:'2022-12-08', location:'UP, MI',             descriptor:'Deer in snow' } },
+  { id:'25', url:deadfile, ratio:'4/5',  category:'Architecture', prominentColor:'#71717a', meta:{ camera:'Sony A7IV', lens:'35mm f/2',    focalLength:'35mm',  shutterSpeed:'1/160s',  aperture:'f/8', iso:100,  date:'2022-11-03', location:'Detroit, MI',        descriptor:'Abandoned factory' } },
+  { id:'26', url:deadfile, ratio:'3/2',  category:'Street',       prominentColor:'#dc2626', meta:{ camera:'Sony A7IV', lens:'35mm f/2',    focalLength:'35mm',  shutterSpeed:'1/100s',  aperture:'f/2.8', iso:1250, date:'2022-10-19', location:'Chicago, IL',        descriptor:'Red line rush hour' } },
+  { id:'27', url:deadfile, ratio:'1/1',  category:'Landscape',    prominentColor:'#0891b2', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8',  focalLength:'24mm',  shutterSpeed:'1/400s',  aperture:'f/8', iso:100,  date:'2022-09-07', location:'Apostle Islands, WI', descriptor:'Sea cave reflection' } },
+  { id:'28', url:deadfile, ratio:'2/3',  category:'Portrait',     prominentColor:'#1c1917', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2',  focalLength:'50mm',  shutterSpeed:'1/50s',   aperture:'f/1.4', iso:3200, date:'2022-08-14', location:'Detroit, MI',        descriptor:'Low key study' } },
+  { id:'29', url:deadfile, ratio:'4/3',  category:'Animal',       prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'400mm f/5.6', focalLength:'400mm', shutterSpeed:'1/2500s', aperture:'f/5.6', iso:800,  date:'2022-07-22', location:'Kalamazoo, MI',      descriptor:'Monarch on milkweed' } },
+  { id:'30', url:deadfile, ratio:'3/4',  category:'Abstract',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'100mm macro', focalLength:'100mm', shutterSpeed:'1/320s',  aperture:'f/16', iso:640,  date:'2022-06-03', location:'Studio',             descriptor:'Rust texture' } },
 ]
 
 function hexToHue(hex: string): number {
@@ -76,17 +77,22 @@ export default function Photos() {
   const navigate = useNavigate()
   const device = useDevice()
   const cfg = DEVICE_CONFIG[device]
-  const [photos, setPhotos] = useState<Photo[]>(MOCK)
+  const [photos, setPhotos] = useState<Required<Photo>[]>(MOCK)
   const [category, setCategory] = useState('All')
   const [colorFilter, setColorFilter] = useState<string | null>(null)
   const [newestFirst, setNewestFirst] = useState(true)
   const [spectrumActive, setSpectrumActive] = useState(false)
   const [hovered, setHovered] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Required<Photo> | null>(null)
+  const [modalVisible, setModalVisible] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [atTop, setAtTop] = useState(true)
+  const [atBottom, setAtBottom] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetchPhotos().then(setPhotos).catch(() => {})
+    fetchPhotos().then(data => setPhotos(data.map(createPhoto))).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -97,6 +103,33 @@ export default function Photos() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    const el = gridRef.current
+    if (!el) return
+    const update = () => {
+      setAtTop(el.scrollTop < 20)
+      setAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 20)
+    }
+    el.addEventListener('scroll', update, { passive: true })
+    update()
+    return () => el.removeEventListener('scroll', update)
+  }, [])
+
+  useEffect(() => {
+    if (selected) {
+      document.body.style.overflow = 'hidden'
+      requestAnimationFrame(() => setModalVisible(true))
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [selected])
+
+  const closeModal = () => {
+    setModalVisible(false)
+    setTimeout(() => setSelected(null), 250)
+  }
+
   const filtered = photos
     .filter(p => category === 'All' || p.category === category)
     .filter(p => !colorFilter || colorDistance(p.prominentColor, colorFilter) < 120)
@@ -105,13 +138,13 @@ export default function Photos() {
         const hueDiff = hexToHue(a.prominentColor) - hexToHue(b.prominentColor)
         if (Math.abs(hueDiff) > 10) return hueDiff
       }
-      const da = new Date(a.meta.date).getTime()
-      const db = new Date(b.meta.date).getTime()
+      const da = new Date(a.meta.date ?? 0).getTime()
+      const db = new Date(b.meta.date ?? 0).getTime()
       return newestFirst ? db - da : da - db
     })
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
+    <div className="h-screen flex flex-col bg-white dark:bg-zinc-900 transition-colors duration-500">
 
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 py-3 flex items-center gap-3 flex-wrap transition-colors duration-500" style={{ paddingLeft: cfg.photoHeaderPx, paddingRight: cfg.photoHeaderPx }}>
@@ -211,6 +244,14 @@ export default function Photos() {
       </div>
 
       {/* Masonry grid */}
+      <div
+        ref={gridRef}
+        className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{
+          maskImage: `linear-gradient(to bottom, transparent, black ${atTop ? '0%' : '8%'}, black ${atBottom ? '100%' : '92%'}, transparent)`,
+          WebkitMaskImage: `linear-gradient(to bottom, transparent, black ${atTop ? '0%' : '8%'}, black ${atBottom ? '100%' : '92%'}, transparent)`,
+        }}
+      >
       <div className={`${cfg.photoColumns} gap-4 py-8`} style={{ paddingLeft: cfg.photoGridPx, paddingRight: cfg.photoGridPx }}>
         {filtered.map(photo => (
           <div
@@ -218,25 +259,83 @@ export default function Photos() {
             className="break-inside-avoid mb-4 cursor-pointer"
             onMouseEnter={() => setHovered(photo.id)}
             onMouseLeave={() => setHovered(null)}
+            onClick={() => setSelected(photo)}
           >
             <div
-              className="w-full rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800 relative"
+              className={`w-full rounded-xl overflow-hidden border transition-all ${hovered === photo.id ? 'border-zinc-400 dark:border-zinc-500 shadow-md' : 'border-zinc-100 dark:border-zinc-800'} relative`}
               style={{ aspectRatio: photo.ratio }}
             >
               <img src={photo.url} alt="" className="w-full h-full object-cover" />
               <div className="absolute top-2 right-2 w-3 h-3 rounded-full border border-white/50 shadow" style={{ backgroundColor: photo.prominentColor }} />
-              {hovered === photo.id && (
-                <div className="absolute inset-0 bg-black/60 p-3 flex flex-col justify-end gap-0.5">
-                  <p className="text-white text-xs font-medium leading-tight">{photo.meta.descriptor}</p>
-                  <p className="text-white/60 text-[0.6rem]">{photo.meta.location} · {photo.meta.date}</p>
-                  <p className="text-white/60 text-[0.6rem]">{photo.meta.camera} · {photo.meta.lens}</p>
-                  <p className="text-white/60 text-[0.6rem]">{photo.meta.focalLength} · ISO {photo.meta.iso}</p>
-                </div>
-              )}
             </div>
           </div>
         ))}
       </div>
+      </div>
+
+      {/* Photo modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6"
+          style={{ opacity: modalVisible ? 1 : 0, transition: 'opacity 250ms ease' }}
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
+            style={{ transform: modalVisible ? 'scale(1)' : 'scale(0.96)', transition: 'transform 250ms ease, opacity 250ms ease', opacity: modalVisible ? 1 : 0 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-full rounded-t-2xl overflow-hidden">
+              <img src={selected.url} alt="" className="w-full object-cover" />
+            </div>
+
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{selected.meta.descriptor}</h2>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{selected.meta.location} · {selected.meta.date}</p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="w-4 h-4 rounded-full border border-zinc-200 dark:border-zinc-700" style={{ backgroundColor: selected.prominentColor }} />
+                  <button onClick={closeModal} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-4">
+                  {[['Camera', selected.meta.camera], ['Lens', selected.meta.lens], ['Focal Length', selected.meta.focalLength]] .map(([label, value]) => (
+                    <div key={label}>
+                      <p className="text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mb-0.5">{label}</p>
+                      <p className="text-sm text-zinc-700 dark:text-zinc-300">{value}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-4">
+                  {[['ISO', String(selected.meta.iso)], ['Aperture', selected.meta.aperture], ['Shutter Speed', selected.meta.shutterSpeed]].map(([label, value]) => (
+                    <div key={label}>
+                      <p className="text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mb-0.5">{label}</p>
+                      <p className="text-sm text-zinc-700 dark:text-zinc-300">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scroll to top */}
+      <button
+        onClick={() => gridRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+        style={{ opacity: atTop ? 0 : 1, pointerEvents: atTop ? 'none' : 'auto', transition: 'opacity 300ms ease' }}
+        className="fixed bottom-20 right-6 z-50 p-2.5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 dark:text-zinc-300">
+          <polyline points="18 15 12 9 6 15" />
+        </svg>
+      </button>
     </div>
   )
 }
