@@ -1,6 +1,10 @@
+/** Last-24h zone traffic, proxied from Cloudflare by GET /api/analytics. */
 export interface SiteAnalytics {
-  uniqueUsers: number
-  apiRequests: number
+  uniqueVisitors: number
+  totalRequests: number
+  totalBytes: number
+  since: string
+  until: string
 }
 
 export interface PhotoMeta {

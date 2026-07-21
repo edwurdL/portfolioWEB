@@ -95,12 +95,18 @@ export default function Home() {
 
       {/* Site analytics */}
       <section>
-        <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
-          Site analytics
-        </h2>
-        <div className="grid grid-cols-2 gap-3">
-          <StatTile label="Unique visitors" value={fmt(stats?.uniqueUsers)} />
-          <StatTile label="API requests" value={fmt(stats?.apiRequests)} />
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+            Site analytics
+          </h2>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+            Last 24 hours · Cloudflare
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <StatTile label="Unique visitors" value={fmt(stats?.uniqueVisitors)} />
+          <StatTile label="Requests" value={fmt(stats?.totalRequests)} />
+          <StatTile label="Bandwidth" value={formatBytes(stats?.totalBytes)} />
         </div>
       </section>
 
@@ -109,6 +115,18 @@ export default function Home() {
       </footer>
     </main>
   )
+}
+
+function formatBytes(bytes?: number): string {
+  if (bytes === undefined) return '—'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let v = bytes
+  let i = 0
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024
+    i++
+  }
+  return `${i === 0 ? v : v >= 100 ? v.toFixed(0) : v.toFixed(1)} ${units[i]}`
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
