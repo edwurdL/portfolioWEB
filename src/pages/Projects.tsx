@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useDevice, DEVICE_CONFIG } from '../hooks/useDevice'
 import { fetchProjects } from '../lib/api'
 import { createProject } from '../types'
 import type { Project, ProjectStatus } from '../types'
@@ -32,8 +30,6 @@ const ALL_MOCK: Required<Project>[] = [
 ]
 
 export default function Projects() {
-  const navigate = useNavigate()
-  const cfg = DEVICE_CONFIG[useDevice()]
   const [projects, setProjects] = useState<Required<Project>[]>([])
   const [offset, setOffset] = useState(0)
   const [hasMore, setHasMore] = useState(true)
@@ -41,12 +37,13 @@ export default function Projects() {
   const [selected, setSelected] = useState<Required<Project> | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
-  const timelineRef = useRef<HTMLDivElement>(null)
-  const [atTop, setAtTop] = useState(true)
-  const [atBottom, setAtBottom] = useState(false)
+  // Synchronous guard: the mount effect and the IntersectionObserver can both
+  // call loadMore before the `loading` state flag has flushed.
+  const loadingRef = useRef(false)
 
   const loadMore = async () => {
-    if (loading || !hasMore) return
+    if (loadingRef.current || !hasMore) return
+    loadingRef.current = true
     setLoading(true)
     try {
       const data = await fetchProjects(PAGE_SIZE, offset)
@@ -60,6 +57,7 @@ export default function Projects() {
       setOffset(prev => prev + slice.length)
       setHasMore(offset + PAGE_SIZE < ALL_MOCK.length)
     } finally {
+      loadingRef.current = false
       setLoading(false)
     }
   }
@@ -67,22 +65,9 @@ export default function Projects() {
   useEffect(() => { loadMore() }, [])
 
   useEffect(() => {
-    const container = timelineRef.current
-    if (!container) return
-    const update = () => {
-      setAtTop(container.scrollTop < 20)
-      setAtBottom(container.scrollTop + container.clientHeight >= container.scrollHeight - 20)
-    }
-    container.addEventListener('scroll', update, { passive: true })
-    update()
-    return () => container.removeEventListener('scroll', update)
-  }, [])
-
-  useEffect(() => {
     const el = sentinelRef.current
-    const root = timelineRef.current
-    if (!el || !root) return
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) loadMore() }, { threshold: 0.1, root })
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) loadMore() }, { threshold: 0.1, rootMargin: '200px' })
     io.observe(el)
     return () => io.disconnect()
   }, [offset, hasMore, loading])
@@ -104,36 +89,13 @@ export default function Projects() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-zinc-900 transition-colors duration-500">
+    <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
+      <main className="max-w-3xl mx-auto px-6 py-12">
+        <header className="mb-10">
+          <h1 className="font-serif text-3xl text-zinc-900 dark:text-zinc-100 mb-1">Projects</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Things I’ve built, newest first.</p>
+        </header>
 
-      {/* Header */}
-      <div
-        className="sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 py-3 flex items-center gap-3 transition-colors duration-500"
-        style={{ paddingLeft: cfg.photoHeaderPx, paddingRight: cfg.photoHeaderPx }}
-      >
-        <button
-          onClick={() => navigate('/')}
-          className="flex-shrink-0 flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Home
-        </button>
-      </div>
-
-      {/* Timeline */}
-      <div
-        ref={timelineRef}
-        className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{
-          paddingLeft: cfg.photoHeaderPx,
-          paddingRight: cfg.photoHeaderPx,
-          maskImage: `linear-gradient(to bottom, transparent, black ${atTop ? '0%' : '8%'}, black ${atBottom ? '100%' : '92%'}, transparent)`,
-          WebkitMaskImage: `linear-gradient(to bottom, transparent, black ${atTop ? '0%' : '8%'}, black ${atBottom ? '100%' : '92%'}, transparent)`,
-        }}
-      >
-        <div className="py-10 max-w-3xl mx-auto">
         <div className="relative">
           <div className="absolute left-0 top-0 bottom-0 w-px bg-zinc-200 dark:bg-zinc-800" />
 
@@ -171,10 +133,10 @@ export default function Projects() {
                 </div>
               </div>
 
-              {/* Year marker between entries */}
+              {/* Year marker between entries, sitting on the timeline */}
               {i < projects.length - 1 &&
                 projects[i].date.split(' ')[1] !== projects[i + 1]?.date.split(' ')[1] && (
-                <div className="absolute -left-10 mt-4 text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
+                <div className="absolute left-0 -translate-x-1/2 mt-3 px-1.5 py-0.5 bg-white dark:bg-zinc-900 text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
                   {projects[i + 1]?.date.split(' ')[1]}
                 </div>
               )}
@@ -194,8 +156,7 @@ export default function Projects() {
             </div>
           )}
         </div>
-        </div>
-      </div>
+      </main>
 
       {/* Modal */}
       {selected && (
@@ -259,17 +220,6 @@ export default function Projects() {
           </div>
         </div>
       )}
-
-      {/* Scroll to top */}
-      <button
-        onClick={() => timelineRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-        style={{ opacity: atTop ? 0 : 1, pointerEvents: atTop ? 'none' : 'auto', transition: 'opacity 300ms ease' }}
-        className="fixed bottom-20 right-6 z-50 p-2.5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 dark:text-zinc-300">
-          <polyline points="18 15 12 9 6 15" />
-        </svg>
-      </button>
     </div>
   )
 }

@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useDevice, DEVICE_CONFIG } from '../hooks/useDevice'
 import { fetchPhotos } from '../lib/api'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
@@ -74,9 +72,6 @@ function colorDistance(a: string, b: string): number {
 }
 
 export default function Photos() {
-  const navigate = useNavigate()
-  const device = useDevice()
-  const cfg = DEVICE_CONFIG[device]
   const [photos, setPhotos] = useState<Required<Photo>[]>(MOCK)
   const [category, setCategory] = useState('All')
   const [colorFilter, setColorFilter] = useState<string | null>(null)
@@ -86,11 +81,8 @@ export default function Photos() {
   const [selected, setSelected] = useState<Required<Photo> | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [atTop, setAtTop] = useState(true)
-  const [atBottom, setAtBottom] = useState(false)
   const [ratios, setRatios] = useState<Record<string, string>>({})
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const gridRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Fetch once and cache in state (API is rate-limited). On failure — e.g.
@@ -106,18 +98,6 @@ export default function Photos() {
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  useEffect(() => {
-    const el = gridRef.current
-    if (!el) return
-    const update = () => {
-      setAtTop(el.scrollTop < 20)
-      setAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 20)
-    }
-    el.addEventListener('scroll', update, { passive: true })
-    update()
-    return () => el.removeEventListener('scroll', update)
   }, [])
 
   useEffect(() => {
@@ -149,23 +129,11 @@ export default function Photos() {
     })
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-zinc-900 transition-colors duration-500">
+    <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
 
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 py-3 flex items-center gap-3 flex-wrap transition-colors duration-500" style={{ paddingLeft: cfg.photoHeaderPx, paddingRight: cfg.photoHeaderPx }}>
-
-        {/* Back */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex-shrink-0 flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Home
-        </button>
-
-        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700 flex-shrink-0" />
+      {/* Filter toolbar */}
+      <div className="sticky top-14 z-30 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-zinc-100 dark:border-zinc-800 transition-colors duration-500">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-3 flex-wrap">
 
         {/* Category dropdown */}
         <div className="relative flex-shrink-0" ref={dropdownRef}>
@@ -246,18 +214,12 @@ export default function Photos() {
             </button>
           )}
         </div>
+        </div>
       </div>
 
       {/* Masonry grid */}
-      <div
-        ref={gridRef}
-        className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{
-          maskImage: `linear-gradient(to bottom, transparent, black ${atTop ? '0%' : '8%'}, black ${atBottom ? '100%' : '92%'}, transparent)`,
-          WebkitMaskImage: `linear-gradient(to bottom, transparent, black ${atTop ? '0%' : '8%'}, black ${atBottom ? '100%' : '92%'}, transparent)`,
-        }}
-      >
-      <div className={`${cfg.photoColumns} gap-4 py-8`} style={{ paddingLeft: cfg.photoGridPx, paddingRight: cfg.photoGridPx }}>
+      <main className="max-w-6xl mx-auto px-6 py-8">
+      <div className="columns-2 md:columns-3 xl:columns-4 gap-4">
         {filtered.map(photo => (
           <div
             key={photo.id}
@@ -285,7 +247,7 @@ export default function Photos() {
           </div>
         ))}
       </div>
-      </div>
+      </main>
 
       {/* Photo modal */}
       {selected && (
@@ -341,17 +303,6 @@ export default function Photos() {
           </div>
         </div>
       )}
-
-      {/* Scroll to top */}
-      <button
-        onClick={() => gridRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-        style={{ opacity: atTop ? 0 : 1, pointerEvents: atTop ? 'none' : 'auto', transition: 'opacity 300ms ease' }}
-        className="fixed bottom-20 right-6 z-50 p-2.5 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md hover:bg-zinc-50 dark:hover:bg-zinc-700 cursor-pointer"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500 dark:text-zinc-300">
-          <polyline points="18 15 12 9 6 15" />
-        </svg>
-      </button>
     </div>
   )
 }

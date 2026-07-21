@@ -1,4 +1,4 @@
-import type { Photo, Project } from '../types'
+import type { Photo, Project, SiteAnalytics } from '../types'
 
 // Photos are served by the self-hosted REST API. `url` fields come back as
 // relative paths, so the base must be prepended to load the actual WebP files.
@@ -67,4 +67,8 @@ export async function fetchPhotos(params: PhotoQuery = {}): Promise<Photo[]> {
 
 export function fetchProjects(limit = 5, offset = 0): Promise<Project[]> {
   return fetchJSON<Project[]>(`/api/projects?limit=${limit}&offset=${offset}`);
+}
+
+export function fetchAnalytics(): Promise<SiteAnalytics> {
+  return fetchJSON<SiteAnalytics>('/api/analytics');
 }

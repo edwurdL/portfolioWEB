@@ -4,7 +4,7 @@ import Home from './pages/Home'
 import Projects from './pages/Projects'
 import Photos from './pages/Photos'
 import Coursework from './pages/Coursework'
-import ThemeToggle from './components/ThemeToggle'
+import Header from './components/Header'
 import ScrollToTop from './components/ScrollToTop'
 
 function AnimatedRoutes() {
@@ -26,6 +26,7 @@ function AnimatedRoutes() {
         if (e.target !== e.currentTarget) return
         if (fading) {
           setDisplayLocation(location)
+          window.scrollTo(0, 0)
           requestAnimationFrame(() => setFading(false))
         }
       }}
@@ -51,9 +52,9 @@ export default function App() {
   return (
     <HashRouter>
       <div className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 min-h-screen font-sans transition-colors duration-500">
+        <Header />
         <AnimatedRoutes />
         <ScrollToTop />
-        <ThemeToggle />
       </div>
     </HashRouter>
   )
