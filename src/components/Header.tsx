@@ -12,15 +12,21 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-zinc-100 dark:border-zinc-800">
-      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
+        {/* Negative margins pull the padded hit areas outward so the link text
+            itself lines up with the page's content column. */}
         <Link
           to="/"
-          className="font-serif text-lg text-zinc-900 dark:text-zinc-100 hover:opacity-70 transition-opacity"
+          className={`-ml-2.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
+            pathname === '/'
+              ? 'text-zinc-900 dark:text-zinc-100'
+              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+          }`}
         >
-          Eddie
+          Home
         </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-2">
+        <nav className="-mr-2 flex items-center gap-1 sm:gap-2">
           {LINKS.map(({ to, label }) => (
             <Link
               key={to}

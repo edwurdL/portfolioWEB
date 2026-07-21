@@ -4,10 +4,10 @@ import profileImg from '../assets/deadfile.png'
 import { fetchAnalytics } from '../lib/api'
 import type { SiteAnalytics } from '../types'
 
-const SOCIALS = [
+const CONTACTS = [
   { label: 'Gmail', href: 'mailto:edlai@umich.edu' },
-  { label: 'GitHub', href: 'https://github.com/edwurdL' },
   { label: 'LinkedIn', href: '#' },
+  { label: 'GitHub', href: 'https://github.com/edwurdL' },
   { label: 'Instagram', href: '#' },
 ]
 
@@ -27,7 +27,7 @@ export default function Home() {
   const fmt = (n?: number) => (n === undefined ? '—' : n.toLocaleString())
 
   return (
-    <main className="max-w-2xl mx-auto px-6 pt-14 pb-16 sm:pt-20">
+    <main className="max-w-3xl mx-auto px-6 pt-14 pb-16 sm:pt-20">
       {/* Hero */}
       <section className="flex items-center gap-5 mb-8">
         <img
@@ -45,7 +45,7 @@ export default function Home() {
         </div>
       </section>
 
-      <p className="text-[0.95rem] leading-relaxed text-zinc-600 dark:text-zinc-400 mb-6">
+      <p className="text-[0.95rem] leading-relaxed text-zinc-600 dark:text-zinc-400 mb-14">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
         tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
         veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
@@ -53,19 +53,24 @@ export default function Home() {
         velit esse cillum dolore eu fugiat nulla pariatur.
       </p>
 
-      <div className="flex flex-wrap gap-x-5 gap-y-2 mb-14">
-        {SOCIALS.map(({ label, href }) => (
-          <a
-            key={label}
-            href={href}
-            target={href.startsWith('http') ? '_blank' : undefined}
-            rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-            className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border-b border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500 pb-px"
-          >
-            {label}
-          </a>
-        ))}
-      </div>
+      <section className="mb-14">
+        <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
+          Contacts
+        </h2>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {CONTACTS.map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              target={href.startsWith('http') ? '_blank' : undefined}
+              rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border-b border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500 pb-px"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </section>
 
       {/* Explore */}
       <section className="mb-14">
