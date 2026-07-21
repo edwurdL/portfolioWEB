@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [tailwindcss()],
-  base: "/eddieLaiPortfolio/",
+  base: "/",
   build: { outDir: 'docs' },
 });
 
