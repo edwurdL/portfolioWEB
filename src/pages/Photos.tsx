@@ -88,11 +88,16 @@ export default function Photos() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [atTop, setAtTop] = useState(true)
   const [atBottom, setAtBottom] = useState(false)
+  const [ratios, setRatios] = useState<Record<string, string>>({})
   const dropdownRef = useRef<HTMLDivElement>(null)
   const gridRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetchPhotos().then(data => setPhotos(data.map(createPhoto))).catch(() => {})
+    // Fetch once and cache in state (API is rate-limited). On failure — e.g.
+    // CORS block during localhost dev — fall back to the mock set already loaded.
+    fetchPhotos()
+      .then(data => { if (data.length) setPhotos(data.map(createPhoto)) })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -263,9 +268,18 @@ export default function Photos() {
           >
             <div
               className={`w-full rounded-xl overflow-hidden border transition-all ${hovered === photo.id ? 'border-zinc-400 dark:border-zinc-500 shadow-md' : 'border-zinc-100 dark:border-zinc-800'} relative`}
-              style={{ aspectRatio: photo.ratio }}
+              style={{ aspectRatio: ratios[photo.id] ?? photo.ratio, backgroundColor: photo.prominentColor }}
             >
-              <img src={photo.url} alt="" className="w-full h-full object-cover" />
+              <img
+                src={photo.url}
+                alt={photo.meta.descriptor}
+                loading="lazy"
+                className="w-full h-full object-cover"
+                onLoad={e => {
+                  const { naturalWidth: w, naturalHeight: h } = e.currentTarget
+                  if (w && h) setRatios(r => (r[photo.id] ? r : { ...r, [photo.id]: `${w}/${h}` }))
+                }}
+              />
               <div className="absolute top-2 right-2 w-3 h-3 rounded-full border border-white/50 shadow" style={{ backgroundColor: photo.prominentColor }} />
             </div>
           </div>
@@ -293,7 +307,9 @@ export default function Photos() {
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
                   <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{selected.meta.descriptor}</h2>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{selected.meta.location} · {selected.meta.date}</p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+                    {[selected.meta.location, selected.meta.date].filter(v => v && v !== 'N/A').join(' · ')}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <div className="w-4 h-4 rounded-full border border-zinc-200 dark:border-zinc-700" style={{ backgroundColor: selected.prominentColor }} />
