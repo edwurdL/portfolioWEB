@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom'
 import profileImg from '../assets/deadfile.png'
 import { fetchAnalytics } from '../lib/api'
 import type { SiteAnalytics } from '../types'
+// Bio text lives in /aboutme.txt at the project root — edit that file and
+// rebuild; blank lines between blocks render as separate paragraphs.
+import bioText from '../../aboutme.txt?raw'
+
+const BIO_PARAGRAPHS = bioText.trim().split(/\n\s*\n/)
 
 const CONTACTS = [
   { label: 'Gmail', href: 'mailto:edlai@umich.edu' },
@@ -14,7 +19,7 @@ const CONTACTS = [
 const SECTIONS = [
   { to: '/projects', label: 'Projects', desc: 'A timeline of things I’ve built — systems, ML, and web.' },
   { to: '/photos', label: 'Photos', desc: 'A filterable gallery served from my self-hosted photo API.' },
-  { to: '/coursework', label: 'Coursework', desc: 'Classes I’ve taken, term by term.' },
+  { to: '/coursework', label: 'Coursework', desc: 'Classes I’ve taken, split by term' },
 ]
 
 export default function Home() {
@@ -45,13 +50,13 @@ export default function Home() {
         </div>
       </section>
 
-      <p className="text-[0.95rem] leading-relaxed text-zinc-600 dark:text-zinc-400 mb-14">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-        veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-        commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-        velit esse cillum dolore eu fugiat nulla pariatur.
-      </p>
+      <div className="mb-14 flex flex-col gap-4">
+        {BIO_PARAGRAPHS.map((para, i) => (
+          <p key={i} className="text-[0.95rem] leading-relaxed text-zinc-600 dark:text-zinc-400">
+            {para}
+          </p>
+        ))}
+      </div>
 
       <section className="mb-14">
         <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
