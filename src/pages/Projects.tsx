@@ -12,21 +12,72 @@ const STATUS_STYLE: Record<ProjectStatus, string> = {
 const PAGE_SIZE = 5
 
 const ALL_MOCK: Required<Project>[] = [
-  { id:'1',  title:'Portfolio Website',          date:'Jun 2026', shortDesc:'Personal portfolio built with React, Tailwind, and Vite. Features dark mode, page transitions, and a GitHub activity calendar.',                                                              fullDesc:'A fully responsive personal portfolio site built from scratch using React 19, Tailwind CSS v4, and Vite. Features include smooth dark/light mode transitions with a custom glitch animation on the GitHub commit calendar, SPA routing via React Router, a masonry photo gallery with metadata overlays, and a mobile-responsive layout driven by a device scale hook. Deployed to GitHub Pages via a /docs build target.',                                                                              tags:['React','TypeScript','Tailwind','Vite'],            status:'in-progress', repoUrl:'https://github.com/edwurdL/eddieLaiPortfolio', liveUrl:'' },
-  { id:'2',  title:'ML Image Classifier',         date:'Apr 2026', shortDesc:'Convolutional neural network trained on CIFAR-10. Achieved 91% test accuracy using PyTorch with data augmentation.',                                                                           fullDesc:'Built and trained a CNN from scratch using PyTorch on the CIFAR-10 dataset. Experimented with residual connections, batch normalization, and dropout regularization. Applied random cropping, horizontal flips, and color jitter for data augmentation. Achieved 91.3% test accuracy after 50 epochs on a single GPU. Training pipeline includes LR scheduling with cosine annealing.',                                                                                                              tags:['Python','PyTorch','CNN','CIFAR-10'],               status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'3',  title:'Distributed Key-Value Store', date:'Mar 2026', shortDesc:'A fault-tolerant distributed KV store implementing the Raft consensus algorithm in Go.',                                                                                                        fullDesc:'Implemented a distributed key-value store with linearizable reads and writes using the Raft consensus protocol. Written in Go with gRPC for RPC. Handles leader election, log replication, and snapshotting. Tested against a Jepsen-style network partition simulator. Supports concurrent client operations with at-most-once semantics via request deduplication.',                                                                                                                            tags:['Go','Raft','gRPC','Distributed Systems'],          status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'4',  title:'Compiler for Tiger Language',  date:'Jan 2026', shortDesc:'A complete compiler for the Tiger language targeting x86-64 assembly, written in OCaml.',                                                                                                      fullDesc:'Built a full compiler pipeline for the Tiger language (from Appel\'s "Modern Compiler Implementation") including lexing, parsing, semantic analysis, IR generation, register allocation via graph coloring, and x86-64 code generation. Written in OCaml. Passes all reference test cases including nested function calls and proper tail-call optimization.',                                                                                                                                   tags:['OCaml','Compilers','x86-64','Tiger'],              status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'5',  title:'Real-Time Chat App',           date:'Nov 2025', shortDesc:'WebSocket-based chat application with rooms, typing indicators, and message history persistence.',                                                                                              fullDesc:'Full-stack real-time chat app using Socket.IO, Express, React, and PostgreSQL. Supports multiple chat rooms, user presence detection, typing indicators, and scrollback history loaded via cursor-based pagination. Messages are stored in Postgres and fetched on room join. Authentication via JWT stored in httpOnly cookies.',                                                                                                                                                              tags:['React','Node.js','Socket.IO','PostgreSQL'],        status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'6',  title:'CLI Task Manager',             date:'Sep 2025', shortDesc:'A terminal-based task manager with projects, priorities, and due dates, written in Rust.',                                                                                                      fullDesc:'A fast CLI productivity tool built in Rust. Stores tasks in a local SQLite database via rusqlite. Supports nested projects, priority levels, due dates, and fuzzy search. Outputs styled tables using tui-rs. Commands follow a git-style subcommand pattern. Includes shell completion scripts for zsh and bash.',                                                                                                                                                                         tags:['Rust','CLI','SQLite','TUI'],                       status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'7',  title:'Data Viz Dashboard',           date:'Jul 2025', shortDesc:'Interactive dashboard visualizing U.S. census data using D3.js with brushing and linked views.',                                                                                                fullDesc:'Built an interactive data visualization dashboard using D3.js and vanilla TypeScript. Displays U.S. census demographic data across multiple linked views: a choropleth map, scatter plot, bar chart, and histogram. Implements brushing and linking so selections in one view filter all others. Data is loaded from CSV and processed client-side. Deployed as a static site on Netlify.',                                                                                                          tags:['D3.js','TypeScript','Data Viz','CSS'],             status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'8',  title:'Unix Shell',                   date:'May 2025', shortDesc:'A POSIX-compatible shell supporting pipes, redirection, background jobs, and signal handling.',                                                                                                 fullDesc:'Implemented a POSIX-compatible Unix shell in C from scratch. Supports command parsing with a recursive-descent parser, pipes, I/O redirection, background job control (&), signal handling (SIGCHLD, SIGINT, SIGTSTP), and built-in commands (cd, fg, bg, jobs, exit). Handles quoted strings and escape sequences correctly.',                                                                                                                                                                  tags:['C','Unix','Systems Programming','POSIX'],          status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'9',  title:'iOS Habit Tracker',            date:'Mar 2025', shortDesc:'A SwiftUI habit tracking app with streak tracking, reminders, and a contribution-style heatmap.',                                                                                               fullDesc:'Native iOS app built with SwiftUI and Core Data. Users can create habits, set daily/weekly targets, and receive local push notifications as reminders. Progress is displayed on a GitHub-style contribution heatmap. App supports iCloud sync via CloudKit. Submitted to the App Store as a student project.',                                                                                                                                                                                tags:['Swift','SwiftUI','Core Data','iOS'],               status:'archived',    repoUrl:'', liveUrl:'' },
-  { id:'10', title:'Pathfinding Visualizer',       date:'Jan 2025', shortDesc:'Visual comparison of BFS, DFS, Dijkstra, and A* on a grid with real-time animation.',                                                                                                          fullDesc:'A web-based pathfinding algorithm visualizer built with React. Users can draw walls, place start/end nodes, and run BFS, DFS, Dijkstra\'s algorithm, or A* with various heuristics. The grid animates visited cells and the shortest path in real-time. Supports weighted grids and diagonal movement. Built to help visualize CS coursework concepts.',                                                                                                                                          tags:['React','Algorithms','Visualization','TypeScript'],  status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'11', title:'Malloc Implementation',        date:'Nov 2024', shortDesc:'A dynamic memory allocator in C implementing explicit free lists and boundary tag coalescing.',                                                                                                  fullDesc:'Implemented a dynamic memory allocator (malloc, free, realloc, calloc) in C using an explicit doubly-linked free list with boundary tag coalescing and first-fit placement. Optimized for both throughput and memory utilization. Achieves ~74% memory utilization and ~9000 Kops/s on the provided trace files. Part of CMU 15-213/CSAPP.',                                                                                                                                                    tags:['C','Systems','Memory Management','CSAPP'],         status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'12', title:'Proxy Server',                 date:'Oct 2024', shortDesc:'A multithreaded HTTP proxy with an LRU cache, supporting concurrent client connections.',                                                                                                       fullDesc:'Built a concurrent HTTP/1.0 proxy server in C using POSIX threads. Implements an LRU cache using a doubly-linked list and hash map to cache recent responses. Thread safety is managed with reader-writer locks. Handles chunked transfer encoding and persistent connections. Part of CMU 15-213/CSAPP.',                                                                                                                                                                                   tags:['C','Networking','HTTP','Concurrency'],             status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'13', title:'Neural Style Transfer',        date:'Aug 2024', shortDesc:'Applies artistic styles to photos using VGG-19 feature maps and gradient descent in PyTorch.',                                                                                                  fullDesc:'Implemented Gatys et al.\'s neural style transfer algorithm using PyTorch. Uses VGG-19 feature maps to compute content loss (Frobenius norm on intermediate activations) and style loss (Gram matrix difference across multiple layers). Optimized the output image directly via L-BFGS. Supports arbitrary content/style pairs and multiple style weights.',                                                                                                                                     tags:['Python','PyTorch','Computer Vision','VGG-19'],     status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'14', title:'TCP/IP Stack',                 date:'Jun 2024', shortDesc:'Partial TCP/IP stack implementation in Python handling connection establishment and reliable delivery.',                                                                                         fullDesc:'Implemented TCP connection establishment (3-way handshake), reliable ordered delivery, flow control (receive window), and congestion control (slow start, AIMD) using raw sockets in Python. Handles out-of-order segments, duplicate ACKs, and retransmission with exponential backoff. Built for a networks course project.',                                                                                                                                                                  tags:['Python','Networking','TCP/IP','Sockets'],          status:'completed',   repoUrl:'', liveUrl:'' },
-  { id:'15', title:'Game Engine Prototype',        date:'Mar 2024', shortDesc:'A minimal 2D game engine in C++ with an ECS architecture, physics, and an OpenGL renderer.',                                                                                                   fullDesc:'Built a minimal 2D game engine from scratch in C++ using an Entity-Component-System (ECS) architecture. Features an OpenGL renderer with sprite batching, a simple AABB physics engine with broad-phase detection, a scene graph, and a Lua scripting interface for game logic. Shipped a small platformer demo using the engine.',                                                                                                                                                              tags:['C++','OpenGL','ECS','Game Dev'],                   status:'archived',    repoUrl:'', liveUrl:'' },
+  {
+    id: '1',
+    title: 'Portfolio Website & Self-Hosted Server',
+    date: 'Jul 2026',
+    shortDesc: 'Personal portfolio built with React and Tailwind, backed by a self-hosted remote server serving a custom photo and projects API.',
+    fullDesc: 'A responsive personal portfolio built from scratch with React 19, Tailwind CSS v4, and Vite — featuring dark mode with animated theme transitions, page transitions, a filterable masonry photo gallery, and live site analytics. Content is served from a self-hosted remote server exposing a REST API for photos (with full EXIF metadata) and projects, fronted by Cloudflare for caching and traffic analytics.',
+    tags: ['React', 'TypeScript', 'Tailwind', 'REST API', 'Self-Hosted'],
+    status: 'in-progress',
+    repoUrl: 'https://github.com/edwurdL/eddieLaiPortfolio',
+    liveUrl: '',
+  },
+  {
+    id: '2',
+    title: 'Medical Census Analytics Dashboard',
+    date: 'Jul 2026',
+    shortDesc: 'Tableau dashboard aggregating 400k+ state-wide medical census data points for high-dimensional trend analysis, with an ETL pipeline in progress.',
+    fullDesc: 'Developed a medical census analytics dashboard aggregating over 400,000 state-wide data points, enabling deep trend visibility and high-dimensional analysis across demographic and geographic breakdowns. Currently building an ETL data pipeline to automate ingestion, cleaning, and transformation of incoming census data feeding the dashboard.',
+    tags: ['Tableau', 'ETL', 'Data Analytics', 'Data Viz'],
+    status: 'in-progress',
+    repoUrl: '',
+    liveUrl: '',
+  },
+  {
+    id: '3',
+    title: 'Operating System File System',
+    date: 'Apr 2026',
+    shortDesc: 'A UNIX-style filesystem in C++ with inodes, directory entries, and crash-consistent, atomic block allocation.',
+    fullDesc: 'Built a UNIX-style filesystem in C++, implementing inodes, directory entries, and block allocation with lazy deletion to mirror real-world filesystem behavior. Engineered crash-consistent storage by leveraging atomic multi-step filesystem operations, ensuring metadata and data integrity are preserved across unexpected system failures with zero data corruption. Hardened reliability with input reconstruction-based validation — parsing and rebuilding user input to enforce strict correctness guarantees and eliminate malformed or malicious operation requests.',
+    tags: ['C++', 'Operating Systems', 'Multithreading', 'Boost'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+  },
+  {
+    id: '4',
+    title: 'Virtual Memory Pager',
+    date: 'Mar 2026',
+    shortDesc: 'A demand-paging virtual memory pager for RAM using the clock eviction algorithm with deferred eviction and overwriting.',
+    fullDesc: 'Built a demand-paging virtual memory pager managing physical RAM. Implemented the clock (second-chance) algorithm for page eviction, along with deferred eviction and deferred overwriting to avoid unnecessary disk writes and page copies until a page is actually modified. Handled page faults, resident and swap-backed state tracking, and reference/dirty bit management to preserve correctness under memory pressure.',
+    tags: ['C++', 'Operating Systems', 'Virtual Memory', 'Paging'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+  },
+  {
+    id: '5',
+    title: 'CPU Scheduler',
+    date: 'Feb 2026',
+    shortDesc: 'A CPU scheduler handling interrupts, context switching, and mutex-based synchronization under preemption.',
+    fullDesc: 'Implemented a CPU scheduler that drives process execution through interrupt handling, context switching between threads, and mutex-based synchronization. Coordinated safe access to shared kernel state and enforced correct scheduling semantics under preemption, avoiding race conditions across concurrent context swaps.',
+    tags: ['C++', 'Operating Systems', 'Concurrency', 'Scheduling'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+  },
+  {
+    id: '6',
+    title: 'Multithreaded Pizza Delivery Matching',
+    date: 'Feb 2026',
+    shortDesc: 'A multithreaded order-to-driver matching simulation coordinating concurrent assignment with basic locks.',
+    fullDesc: 'Built a multithreaded pizza delivery matching system that pairs incoming orders with available drivers concurrently. Used basic locks and condition variables to coordinate shared state between producer and consumer threads, preventing race conditions and deadlock while sustaining throughput under concurrent load.',
+    tags: ['C++', 'Multithreading', 'Concurrency', 'Locks'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+  },
 ]
 
 export default function Projects() {
@@ -88,6 +139,16 @@ export default function Projects() {
     setTimeout(() => setSelected(null), 250)
   }
 
+  // Group consecutive projects by year so the timeline can show a year header
+  // (like the Coursework page). Projects are already newest-first.
+  const groups: { year: string; items: Required<Project>[] }[] = []
+  for (const p of projects) {
+    const year = p.date.split(' ')[1] ?? '—'
+    const last = groups[groups.length - 1]
+    if (last && last.year === year) last.items.push(p)
+    else groups.push({ year, items: [p] })
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
       <main className="max-w-3xl mx-auto px-6 py-12">
@@ -99,47 +160,48 @@ export default function Projects() {
         <div className="relative">
           <div className="absolute left-0 top-0 bottom-0 w-px bg-zinc-200 dark:bg-zinc-800" />
 
-          {projects.map((p, i) => (
-            <div
-              key={p.id}
-              className="relative pl-8 mb-8"
-            >
-              {/* Timeline dot */}
-              <div className="absolute left-[-4px] top-5 w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 ring-2 ring-white dark:ring-zinc-900" />
-
-              {/* Card */}
-              <div
-                onClick={() => setSelected(p)}
-                className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-md transition-all"
-              >
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{p.title}</h2>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className={`text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
-                      {p.status}
-                    </span>
-                    <span className="text-xs text-zinc-400 dark:text-zinc-600 whitespace-nowrap">{p.date}</span>
-                  </div>
-                </div>
-
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-3">{p.shortDesc}</p>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {p.tags.map(tag => (
-                    <span key={tag} className="text-[0.65rem] uppercase tracking-wide px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+          {groups.map(({ year, items }) => (
+            <div key={year}>
+              {/* Year header sitting on the timeline */}
+              <div className="relative pl-8 mb-5 first:mt-0">
+                <div className="absolute left-[-4px] top-1.5 w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700 ring-2 ring-white dark:ring-zinc-900" />
+                <h2 className="text-sm font-medium tracking-[0.2em] text-zinc-500 dark:text-zinc-400 tabular-nums">
+                  {year}
+                </h2>
               </div>
 
-              {/* Year marker between entries, sitting on the timeline */}
-              {i < projects.length - 1 &&
-                projects[i].date.split(' ')[1] !== projects[i + 1]?.date.split(' ')[1] && (
-                <div className="absolute left-0 -translate-x-1/2 mt-3 px-1.5 py-0.5 bg-white dark:bg-zinc-900 text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600">
-                  {projects[i + 1]?.date.split(' ')[1]}
+              {items.map(p => (
+                <div key={p.id} className="relative pl-8 mb-8">
+                  {/* Timeline dot */}
+                  <div className="absolute left-[-4px] top-5 w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 ring-2 ring-white dark:ring-zinc-900" />
+
+                  {/* Card */}
+                  <div
+                    onClick={() => setSelected(p)}
+                    className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-2">
+                      <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{p.title}</h3>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
+                          {p.status}
+                        </span>
+                        <span className="text-xs text-zinc-400 dark:text-zinc-600 whitespace-nowrap">{p.date}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-3">{p.shortDesc}</p>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.tags.map(tag => (
+                        <span key={tag} className="text-[0.65rem] uppercase tracking-wide px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           ))}
 
@@ -151,8 +213,11 @@ export default function Projects() {
           )}
 
           {!hasMore && !loading && (
-            <div className="pl-8 pb-4 text-[0.65rem] uppercase tracking-widest text-zinc-300 dark:text-zinc-700">
-              End of projects
+            <div className="pl-8 pb-4">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">More to be added soon.</p>
+              <p className="text-[0.65rem] uppercase tracking-widest text-zinc-300 dark:text-zinc-700">
+                End of projects
+              </p>
             </div>
           )}
         </div>

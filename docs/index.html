@@ -4,19 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eddie — Portfolio</title>
-  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="icon" id="favicon" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Instrument+Serif&display=swap" rel="stylesheet" />
   <script>
     const saved = localStorage.getItem('theme')
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    if (saved === 'dark' || (!saved && prefersDark)) {
-      document.documentElement.classList.add('dark')
-    }
+    const dark = saved === 'dark' || (!saved && prefersDark)
+    if (dark) document.documentElement.classList.add('dark')
+    const bg = dark ? '#18181b' : '#fafafa', fg = dark ? '#fafafa' : '#18181b', stroke = dark ? '#3f3f46' : '#e4e4e7'
+    document.getElementById('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="16" fill="${bg}" stroke="${stroke}" stroke-width="2"/><text x="32" y="34" dominant-baseline="central" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="34" font-weight="700" textLength="46" lengthAdjust="spacingAndGlyphs" fill="${fg}">[EL]</text></svg>`
+    )
   </script>
-  <script type="module" crossorigin src="/assets/index-D_il97wv.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DEIrixBq.css">
+  <script type="module" crossorigin src="/assets/index-DdPt1VQC.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-ds6BStsX.css">
 </head>
 <body>
   <div id="root"></div>

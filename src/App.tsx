@@ -6,6 +6,7 @@ import Photos from './pages/Photos'
 import Coursework from './pages/Coursework'
 import Header from './components/Header'
 import ScrollToTop from './components/ScrollToTop'
+import { watchFavicon } from './lib/favicon'
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -47,6 +48,7 @@ export default function App() {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const dark = saved !== null ? saved === 'dark' : prefersDark
     document.documentElement.classList.toggle('dark', dark)
+    return watchFavicon()
   }, [])
 
   return (

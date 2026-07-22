@@ -71,8 +71,25 @@ function colorDistance(a: string, b: string): number {
   return Math.sqrt([0,1,2].reduce((s,i) => s + (p(a,i)-p(b,i))**2, 0))
 }
 
+const SKELETON_RATIOS = ['3/4', '1/1', '4/5', '2/3', '16/9', '3/4', '1/1', '4/5']
+
+function colsFor(w: number) {
+  return w >= 1024 ? 4 : w >= 768 ? 3 : 2
+}
+
+function useColumnCount() {
+  const [cols, setCols] = useState(() => colsFor(window.innerWidth))
+  useEffect(() => {
+    const on = () => setCols(colsFor(window.innerWidth))
+    window.addEventListener('resize', on, { passive: true })
+    return () => window.removeEventListener('resize', on)
+  }, [])
+  return cols
+}
+
 export default function Photos() {
-  const [photos, setPhotos] = useState<Required<Photo>[]>(MOCK)
+  const [photos, setPhotos] = useState<Required<Photo>[]>([])
+  const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState('All')
   const [colorFilter, setColorFilter] = useState<string | null>(null)
   const [newestFirst, setNewestFirst] = useState(true)
@@ -82,14 +99,17 @@ export default function Photos() {
   const [modalVisible, setModalVisible] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [ratios, setRatios] = useState<Record<string, string>>({})
+  const columns = useColumnCount()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Fetch once and cache in state (API is rate-limited). On failure — e.g.
-    // CORS block during localhost dev — fall back to the mock set already loaded.
+    // CORS block during localhost dev — fall back to the mock set so the page
+    // still renders something. Skeletons show until this resolves.
     fetchPhotos()
-      .then(data => { if (data.length) setPhotos(data.map(createPhoto)) })
-      .catch(() => {})
+      .then(data => setPhotos(data.length ? data.map(createPhoto) : MOCK))
+      .catch(() => setPhotos(MOCK))
+      .finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
@@ -127,6 +147,12 @@ export default function Photos() {
       const db = new Date(b.meta.date ?? 0).getTime()
       return newestFirst ? db - da : da - db
     })
+
+  // Distribute into fixed columns round-robin. Unlike CSS multicol, each column
+  // is an independent stack, so a tile changing height only shifts the tiles
+  // below it in its own column — tiles never rebalance across columns.
+  const buckets: Required<Photo>[][] = Array.from({ length: columns }, () => [])
+  filtered.forEach((p, i) => buckets[i % columns].push(p))
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
@@ -219,34 +245,58 @@ export default function Photos() {
 
       {/* Masonry grid */}
       <main className="max-w-6xl mx-auto px-6 py-8">
-      <div className="columns-2 md:columns-3 xl:columns-4 gap-4">
-        {filtered.map(photo => (
-          <div
-            key={photo.id}
-            className="break-inside-avoid mb-4 cursor-pointer"
-            onMouseEnter={() => setHovered(photo.id)}
-            onMouseLeave={() => setHovered(null)}
-            onClick={() => setSelected(photo)}
-          >
-            <div
-              className={`w-full rounded-xl overflow-hidden border transition-all ${hovered === photo.id ? 'border-zinc-400 dark:border-zinc-500 shadow-md' : 'border-zinc-100 dark:border-zinc-800'} relative`}
-              style={{ aspectRatio: ratios[photo.id] ?? photo.ratio, backgroundColor: photo.prominentColor }}
-            >
-              <img
-                src={photo.url}
-                alt={photo.meta.descriptor}
-                loading="lazy"
-                className="w-full h-full object-cover"
-                onLoad={e => {
-                  const { naturalWidth: w, naturalHeight: h } = e.currentTarget
-                  if (w && h) setRatios(r => (r[photo.id] ? r : { ...r, [photo.id]: `${w}/${h}` }))
-                }}
-              />
-              <div className="absolute top-2 right-2 w-3 h-3 rounded-full border border-white/50 shadow" style={{ backgroundColor: photo.prominentColor }} />
+      {loading ? (
+        <div className="flex gap-4">
+          {Array.from({ length: columns }).map((_, ci) => (
+            <div key={ci} className="flex-1 flex flex-col gap-4 min-w-0">
+              {SKELETON_RATIOS.map((r, i) => (
+                <div
+                  key={i}
+                  className="w-full rounded-xl bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                  style={{ aspectRatio: SKELETON_RATIOS[(i + ci) % SKELETON_RATIOS.length] ?? r }}
+                />
+              ))}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="text-center text-sm text-zinc-400 dark:text-zinc-500 py-20">
+          No photos match these filters.
+        </p>
+      ) : (
+        <div className="flex gap-4">
+          {buckets.map((col, ci) => (
+            <div key={ci} className="flex-1 flex flex-col gap-4 min-w-0">
+              {col.map(photo => (
+                <div
+                  key={photo.id}
+                  className="cursor-pointer"
+                  onMouseEnter={() => setHovered(photo.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => setSelected(photo)}
+                >
+                  <div
+                    className={`w-full rounded-xl overflow-hidden border transition-all ${hovered === photo.id ? 'border-zinc-400 dark:border-zinc-500 shadow-md' : 'border-zinc-100 dark:border-zinc-800'} relative`}
+                    style={{ aspectRatio: ratios[photo.id] ?? photo.ratio, backgroundColor: photo.prominentColor }}
+                  >
+                    <img
+                      src={photo.url}
+                      alt={photo.meta.descriptor}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                      onLoad={e => {
+                        const { naturalWidth: w, naturalHeight: h } = e.currentTarget
+                        if (w && h) setRatios(r => (r[photo.id] ? r : { ...r, [photo.id]: `${w}/${h}` }))
+                      }}
+                    />
+                    <div className="absolute top-2 right-2 w-3 h-3 rounded-full border border-white/50 shadow" style={{ backgroundColor: photo.prominentColor }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
       </main>
 
       {/* Photo modal */}

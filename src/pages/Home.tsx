@@ -40,7 +40,7 @@ export default function Home() {
             Eddie
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            CS @ University of Michigan
+            CompE @ University of Michigan
           </p>
         </div>
       </section>
@@ -115,8 +115,9 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="mt-16 pt-6 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-400 dark:text-zinc-600">
-        © 2026 Eddie Lai
+      <footer className="mt-16 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap justify-between gap-2 text-xs text-zinc-400 dark:text-zinc-600">
+        <span>© 2026 Eddie Lai</span>
+        <span>Last updated: {__BUILD_DATE__}</span>
       </footer>
     </main>
   )
