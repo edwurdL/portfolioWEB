@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { fetchProjects } from '../lib/api'
-import { createProject } from '../types'
+import { useEffect, useState } from 'react'
 import type { Project, ProjectStatus } from '../types'
 
 const STATUS_STYLE: Record<ProjectStatus, string> = {
@@ -9,9 +7,7 @@ const STATUS_STYLE: Record<ProjectStatus, string> = {
   'archived':    'bg-zinc-100  dark:bg-zinc-800      text-zinc-500   dark:text-zinc-400',
 }
 
-const PAGE_SIZE = 5
-
-const ALL_MOCK: Required<Project>[] = [
+const PROJECTS: Required<Project>[] = [
   {
     id: '1',
     title: 'Portfolio Website & Self-Hosted Server',
@@ -81,48 +77,9 @@ const ALL_MOCK: Required<Project>[] = [
 ]
 
 export default function Projects() {
-  const [projects, setProjects] = useState<Required<Project>[]>([])
-  const [offset, setOffset] = useState(0)
-  const [hasMore, setHasMore] = useState(true)
-  const [loading, setLoading] = useState(false)
+  const projects = PROJECTS
   const [selected, setSelected] = useState<Required<Project> | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
-  const sentinelRef = useRef<HTMLDivElement>(null)
-  // Synchronous guard: the mount effect and the IntersectionObserver can both
-  // call loadMore before the `loading` state flag has flushed.
-  const loadingRef = useRef(false)
-
-  const loadMore = async () => {
-    if (loadingRef.current || !hasMore) return
-    loadingRef.current = true
-    setLoading(true)
-    try {
-      const data = await fetchProjects(PAGE_SIZE, offset)
-      const normalized = data.map(createProject)
-      setProjects(prev => [...prev, ...normalized])
-      setOffset(prev => prev + normalized.length)
-      setHasMore(normalized.length === PAGE_SIZE)
-    } catch {
-      const slice = ALL_MOCK.slice(offset, offset + PAGE_SIZE)
-      setProjects(prev => [...prev, ...slice])
-      setOffset(prev => prev + slice.length)
-      setHasMore(offset + PAGE_SIZE < ALL_MOCK.length)
-    } finally {
-      loadingRef.current = false
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => { loadMore() }, [])
-
-  useEffect(() => {
-    const el = sentinelRef.current
-    if (!el) return
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) loadMore() }, { threshold: 0.1, rootMargin: '200px' })
-    io.observe(el)
-    return () => io.disconnect()
-  }, [offset, hasMore, loading])
-
 
   useEffect(() => {
     if (selected) {
@@ -205,21 +162,12 @@ export default function Projects() {
             </div>
           ))}
 
-          {/* Sentinel */}
-          <div ref={sentinelRef} className="h-4" />
-
-          {loading && (
-            <div className="pl-8 pb-4 text-sm text-zinc-400 dark:text-zinc-600">Loading…</div>
-          )}
-
-          {!hasMore && !loading && (
-            <div className="pl-8 pb-4">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">More to be added soon.</p>
-              <p className="text-[0.65rem] uppercase tracking-widest text-zinc-300 dark:text-zinc-700">
-                End of projects
-              </p>
-            </div>
-          )}
+          <div className="pl-8 pb-4">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">More to be added soon.</p>
+            <p className="text-[0.65rem] uppercase tracking-widest text-zinc-300 dark:text-zinc-700">
+              End of projects
+            </p>
+          </div>
         </div>
       </main>
 
