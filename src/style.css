@@ -15,6 +15,48 @@ html.dark {
   background-color: #18181b;
 }
 
-*, *::before, *::after {
-  transition: color 0.5s ease, background-color 0.5s ease, border-color 0.5s ease;
+/* Every element eases its colours so flipping the theme fades rather than
+   flashes. This lives in the base layer on purpose: unlayered, it would beat
+   Tailwind's own transition utilities — and since it names only the colour
+   properties, anything transitioning width, translate or transform (the
+   header's Home slide, the card arrows, the rail's markers) would snap. */
+@layer base {
+  *, *::before, *::after {
+    transition: color 0.5s ease, background-color 0.5s ease, border-color 0.5s ease;
+  }
+}
+
+/* Photos get scaled down hard — a 600px headshot into a 160px box, gallery
+   shots into masonry tiles — so ask for the browser's best resampling instead
+   of its fastest. `high-quality` is ignored where unsupported, leaving `auto`. */
+img {
+  image-rendering: auto;
+  image-rendering: high-quality;
+}
+
+/* For the images that are both heavily downscaled and rounded, a compositing
+   layer of their own keeps the corners from stair-stepping (Safari especially)
+   and smooths the scale. Used sparingly — it costs a layer per image. */
+.photo-smooth {
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Home's Explore cards rotate through their section's items while idle; each
+   swap slides the new preview up as it fades in. The cycling itself pauses
+   while a card is hovered — see SectionCard in pages/Home.tsx. */
+@keyframes preview-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.preview-swap {
+  animation: preview-in 2000ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-swap {
+    animation: none;
+  }
 }

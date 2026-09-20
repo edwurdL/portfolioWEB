@@ -14,13 +14,20 @@ export default function Header() {
     <header className="sticky top-0 z-40 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-zinc-100 dark:border-zinc-800">
       <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
         {/* Negative margins pull the padded hit areas outward so the link text
-            itself lines up with the page's content column. */}
+            itself lines up with the page's content column. On home, where the
+            section rail is showing (xl and up), Home slides out to sit on the
+            rail's line instead — 12.5rem left of the content column, which is
+            where PageNav in pages/Home.tsx puts its markers. Leaving home slides
+            it back. Tailwind v4 writes that offset to the `translate` property,
+            so that — not `transform` — is what has to be transitioned, and the
+            other pages set it to an explicit 0 rather than dropping the class,
+            since a length only interpolates against another length. */}
         <Link
           to="/"
-          className={`-ml-2.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
+          className={`-ml-2.5 px-2.5 py-1.5 rounded-lg text-sm transition-[color,translate] duration-500 ease-out ${
             pathname === '/'
-              ? 'text-zinc-900 dark:text-zinc-100'
-              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+              ? 'text-zinc-900 dark:text-zinc-100 xl:-translate-x-[12.5rem]'
+              : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 xl:translate-x-0'
           }`}
         >
           Home

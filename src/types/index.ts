@@ -42,7 +42,7 @@ export function createPhotoMeta(meta: PhotoMeta = {}): Required<PhotoMeta> {
   }
 }
 
-export type ProjectStatus = 'completed' | 'in-progress' | 'archived'
+export type ProjectStatus = 'completed' | 'in-progress' | 'deployed' | 'archived'
 
 export interface Project {
   id: string
@@ -54,6 +54,8 @@ export interface Project {
   status?: ProjectStatus
   repoUrl?: string
   liveUrl?: string
+  /** Screenshots for the detail modal — files live in src/assets/projects/. */
+  images?: string[]
 }
 
 export function createProject(p: Partial<Project> & { id: string }): Required<Project> {
@@ -67,6 +69,7 @@ export function createProject(p: Partial<Project> & { id: string }): Required<Pr
     status:    p.status    ?? 'completed',
     repoUrl:   p.repoUrl   ?? '',
     liveUrl:   p.liveUrl   ?? '',
+    images:    p.images    ?? [],
   }
 }
 

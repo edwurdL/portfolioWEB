@@ -1,13 +1,38 @@
 import { useEffect, useState } from 'react'
 import type { Project, ProjectStatus } from '../types'
 
+// Project photos live in src/assets/projects/<folder>/. Drop up to two images
+// into a folder and they show up in that project's modal, ordered by filename;
+// a project whose folder is empty renders no photos at all.
+const PROJECT_PHOTOS = import.meta.glob(
+  '../assets/projects/*/*.{png,jpg,jpeg,webp,avif,svg}',
+  { eager: true, query: '?url', import: 'default' }
+) as Record<string, string>
+
+const MAX_PHOTOS = 2
+
+function photosFor(folder: string): string[] {
+  const prefix = `../assets/projects/${folder}/`
+  const files = Object.keys(PROJECT_PHOTOS).filter(path => path.startsWith(prefix)).sort()
+  if (import.meta.env.DEV && files.length > MAX_PHOTOS) {
+    console.warn(`[projects] ${folder}/ holds ${files.length} photos — only the first ${MAX_PHOTOS} are shown.`)
+  }
+  return files.slice(0, MAX_PHOTOS).map(path => PROJECT_PHOTOS[path])
+}
+
 const STATUS_STYLE: Record<ProjectStatus, string> = {
   'completed':   'bg-green-50  dark:bg-green-900/20 text-green-700  dark:text-green-400',
   'in-progress': 'bg-blue-50   dark:bg-blue-900/20  text-blue-700   dark:text-blue-400',
+  'deployed':    'bg-teal-50   dark:bg-teal-900/20  text-teal-700   dark:text-teal-400',
   'archived':    'bg-zinc-100  dark:bg-zinc-800      text-zinc-500   dark:text-zinc-400',
 }
 
-const PROJECTS: Required<Project>[] = [
+// Most pills just print the status; this one needs both halves of the story.
+export const STATUS_LABEL: Partial<Record<ProjectStatus, string>> = {
+  'deployed': 'deployed · maintaining',
+}
+
+export const PROJECTS: Required<Project>[] = [
   {
     id: '1',
     title: 'Portfolio Website & Self-Hosted Server',
@@ -15,9 +40,10 @@ const PROJECTS: Required<Project>[] = [
     shortDesc: 'Personal portfolio built with React and Tailwind, backed by a self-hosted remote server serving a custom photo and projects API.',
     fullDesc: 'A responsive personal portfolio built from scratch with React 19, Tailwind CSS v4, and Vite — featuring dark mode with animated theme transitions, page transitions, a filterable masonry photo gallery, and live site analytics. Content is served from a self-hosted remote server exposing a REST API for photos (with full EXIF metadata) and projects, fronted by Cloudflare for caching and traffic analytics.',
     tags: ['React', 'TypeScript', 'Tailwind', 'REST API', 'Self-Hosted'],
-    status: 'in-progress',
+    status: 'deployed',
     repoUrl: 'https://github.com/edwurdL/eddieLaiPortfolio',
     liveUrl: '',
+    images: photosFor('portfolio-website'),
   },
   {
     id: '2',
@@ -26,12 +52,39 @@ const PROJECTS: Required<Project>[] = [
     shortDesc: 'Tableau dashboard aggregating 400k+ state-wide medical census data points for high-dimensional trend analysis, with an ETL pipeline in progress.',
     fullDesc: 'Developed a medical census analytics dashboard aggregating over 400,000 state-wide data points, enabling deep trend visibility and high-dimensional analysis across demographic and geographic breakdowns. Currently building an ETL data pipeline to automate ingestion, cleaning, and transformation of incoming census data feeding the dashboard.',
     tags: ['Tableau', 'ETL', 'Data Analytics', 'Data Viz'],
-    status: 'in-progress',
+    status: 'completed',
     repoUrl: '',
     liveUrl: '',
+    // Two slots held open for dashboard screenshots — swap each entry for a
+    // real file in src/assets/projects/.
+    images: photosFor('medical-census-dashboard'),
   },
   {
     id: '3',
+    title: 'ESP32 Sensor Coprocessor for Position Tracking',
+    date: 'Jun 2026',
+    shortDesc: 'Third-party VL53L1X time-of-flight sensors read over I2C by an ESP32 coprocessor, streamed over serial to the main robot controller to validate position tracking.',
+    fullDesc: 'Integrated third-party VL53L1X time-of-flight distance sensors into a robot whose controller had no native support for them, using an ESP32 as a dedicated sensor coprocessor. The ESP32 drives the sensors over I2C — handling device addressing, configuration, and ranging timing — and forwards readings to the main robot controller over a serial link, keeping sensor I/O off the controller’s main loop. Used the resulting distance measurements as an independent reference for position tracking, cross-checking the robot’s reported pose against measured distances to fixed field elements to confirm the tracking held up over a match.',
+    tags: ['ESP32', 'I2C', 'Embedded', 'Sensors', 'Robotics'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+    images: photosFor('esp32-sensor-coprocessor'),
+  },
+  {
+    id: '4',
+    title: 'Custom-Manufactured VEX Robot Structures',
+    date: 'Jan–May 2026',
+    shortDesc: 'Laser-cut sheet plastic and metal structural parts for VEX competition robots, manufactured in-house to trade weight against rigidity where each subsystem needed it.',
+    fullDesc: 'Designed and manufactured custom structural components for VEX competition robots, replacing stock parts with laser-cut sheet plastic and metal chosen per subsystem. Selected material and thickness against the loads each part actually carried, then cut lightening pockets into low-stress regions to strip mass without giving up stiffness, and added gussets and laminated layers where parts saw torsion. Matched hole patterns to the VEX grid so custom parts stayed compatible with off-the-shelf hardware and could be swapped in mid-build. Iterated across the season — each revision tested on the robot, then re-cut — converging on structures that stayed rigid under impact while keeping the robot light enough to hit its handling targets.',
+    tags: ['Mechanical Design', 'CAD', 'Laser Cutting', 'Manufacturing', 'VEX'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+    images: photosFor('vex-robot-structures'),
+  },
+  {
+    id: '5',
     title: 'Operating System File System',
     date: 'Apr 2026',
     shortDesc: 'A UNIX-style filesystem in C++ with inodes, directory entries, and crash-consistent, atomic block allocation.',
@@ -40,9 +93,10 @@ const PROJECTS: Required<Project>[] = [
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
+    images: photosFor('os-file-system'),
   },
   {
-    id: '4',
+    id: '6',
     title: 'Virtual Memory Pager',
     date: 'Mar 2026',
     shortDesc: 'A demand-paging virtual memory pager for RAM using the clock eviction algorithm with deferred eviction and overwriting.',
@@ -51,9 +105,10 @@ const PROJECTS: Required<Project>[] = [
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
+    images: photosFor('virtual-memory-pager'),
   },
   {
-    id: '5',
+    id: '7',
     title: 'CPU Scheduler',
     date: 'Feb 2026',
     shortDesc: 'A CPU scheduler handling interrupts, context switching, and mutex-based synchronization under preemption.',
@@ -62,9 +117,10 @@ const PROJECTS: Required<Project>[] = [
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
+    images: photosFor('cpu-scheduler'),
   },
   {
-    id: '6',
+    id: '8',
     title: 'Multithreaded Pizza Delivery Matching',
     date: 'Feb 2026',
     shortDesc: 'A multithreaded order-to-driver matching simulation coordinating concurrent assignment with basic locks.',
@@ -73,6 +129,19 @@ const PROJECTS: Required<Project>[] = [
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
+    images: photosFor('pizza-delivery-matching'),
+  },
+  {
+    id: '9',
+    title: 'CR-10 Controller & Firmware Overhaul',
+    date: 'Dec 2023',
+    shortDesc: 'Rebuilt a Creality CR-10 around a new motherboard with silent stepper drivers, BLTouch auto bed leveling, and touchscreen control, with firmware configured to match.',
+    fullDesc: 'Overhauled the electronics on a Creality CR-10 3D printer. Swapped the stock control board for a new motherboard running silent stepper drivers, cutting the printer’s running noise to near-silent while holding step accuracy. Added a BLTouch probe for automatic bed leveling and replaced the stock knob controller with a touchscreen interface. Wired the new hardware and configured the firmware around it — probe offsets and deployment, mesh bed leveling, driver and endstop setup, and thermal settings — then validated the rebuild with leveling runs and first-layer test prints until the bed compensated correctly across its full area.',
+    tags: ['3D Printing', 'Firmware', 'Electronics', 'Hardware'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+    images: photosFor('cr10-upgrade'),
   },
 ]
 
@@ -80,6 +149,9 @@ export default function Projects() {
   const projects = PROJECTS
   const [selected, setSelected] = useState<Required<Project> | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
+  const [shotRatios, setShotRatios] = useState<Record<string, string>>({})
+  const [zoomed, setZoomed] = useState<string | null>(null)
+  const [zoomVisible, setZoomVisible] = useState(false)
 
   useEffect(() => {
     if (selected) {
@@ -91,9 +163,18 @@ export default function Projects() {
     return () => { document.body.style.overflow = '' }
   }, [selected])
 
+  useEffect(() => {
+    if (zoomed) requestAnimationFrame(() => setZoomVisible(true))
+  }, [zoomed])
+
   const closeModal = () => {
     setModalVisible(false)
     setTimeout(() => setSelected(null), 250)
+  }
+
+  const closeZoom = () => {
+    setZoomVisible(false)
+    setTimeout(() => setZoomed(null), 250)
   }
 
   // Group consecutive projects by year so the timeline can show a year header
@@ -111,7 +192,7 @@ export default function Projects() {
       <main className="max-w-3xl mx-auto px-6 py-12">
         <header className="mb-10">
           <h1 className="font-serif text-3xl text-zinc-900 dark:text-zinc-100 mb-1">Projects</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Things I’ve built, newest first.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Things I’ve built.</p>
         </header>
 
         <div className="relative">
@@ -141,7 +222,7 @@ export default function Projects() {
                       <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{p.title}</h3>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className={`text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
-                          {p.status}
+                          {STATUS_LABEL[p.status] ?? p.status}
                         </span>
                         <span className="text-xs text-zinc-400 dark:text-zinc-600 whitespace-nowrap">{p.date}</span>
                       </div>
@@ -196,7 +277,7 @@ export default function Projects() {
 
               <div className="flex items-center gap-2 mb-4">
                 <span className={`text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full ${STATUS_STYLE[selected.status]}`}>
-                  {selected.status}
+                  {STATUS_LABEL[selected.status] ?? selected.status}
                 </span>
                 <span className="text-xs text-zinc-400 dark:text-zinc-600">{selected.date}</span>
               </div>
@@ -208,6 +289,30 @@ export default function Projects() {
                   </span>
                 ))}
               </div>
+
+              {selected.images.length > 0 && (
+                <div className="flex flex-col sm:flex-row gap-3 mb-5 items-start">
+                  {selected.images.map((src, i) => (
+                    <div
+                      key={i}
+                      className="w-full sm:flex-1 sm:min-w-0 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800"
+                      style={{ aspectRatio: shotRatios[src] ?? '16/9' }}
+                    >
+                      <img
+                        src={src}
+                        alt={`${selected.title} photo ${i + 1}`}
+                        loading="lazy"
+                        onClick={() => setZoomed(src)}
+                        className="w-full h-full object-cover photo-smooth cursor-zoom-in"
+                        onLoad={e => {
+                          const { naturalWidth: w, naturalHeight: h } = e.currentTarget
+                          if (w && h) setShotRatios(r => (r[src] ? r : { ...r, [src]: `${w}/${h}` }))
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-6">{selected.fullDesc}</p>
 
@@ -231,6 +336,33 @@ export default function Projects() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Enlarged photo, over the project modal */}
+      {zoomed && (
+        <div
+          className="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-6 sm:p-10 cursor-zoom-out"
+          style={{ opacity: zoomVisible ? 1 : 0, transition: 'opacity 250ms ease' }}
+          onClick={closeZoom}
+        >
+          <img
+            src={zoomed}
+            alt=""
+            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl photo-smooth"
+            style={{
+              transform: zoomVisible ? 'scale(1)' : 'scale(0.96)',
+              transition: 'transform 250ms ease, opacity 250ms ease',
+              opacity: zoomVisible ? 1 : 0,
+            }}
+          />
+          <button
+            onClick={closeZoom}
+            aria-label="Close photo"
+            className="absolute top-5 right-5 text-white/60 hover:text-white transition-colors cursor-pointer"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       )}
     </div>

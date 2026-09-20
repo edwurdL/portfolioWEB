@@ -11,12 +11,12 @@ interface Term {
 }
 
 // Reverse-chronological: upcoming term first, then most recent completed.
-const TERMS: Term[] = [
+export const TERMS: Term[] = [
   {
     term: 'Fall 2026',
     planned: true,
     courses: [
-      { code: 'EECS 485', name: 'Web Systems', desc: 'Design and implementation of scalable web applications, covering the full stack from front-end interfaces to distributed back-end services, caching, and information retrieval.' },
+      { code: 'EECS 491', name: 'Introduction to Distributed Systems', desc: 'Principles behind systems that span many machines: remote procedure calls, concurrency and consistency models, replication, fault tolerance, and consensus.' },
     ],
   },
   {
@@ -54,7 +54,7 @@ export default function Coursework() {
         <header className="mb-10">
           <h1 className="font-serif text-3xl text-zinc-900 dark:text-zinc-100 mb-1">Coursework</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Computer engineering courses at the University of Michigan, term by term.
+            EECS courses at the University of Michigan.
           </p>
         </header>
 

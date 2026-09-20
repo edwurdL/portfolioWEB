@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fetchPhotos } from '../lib/api'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
-import deadfile from '../assets/deadfile.png'
+import deadfile from '../assets/deadfile.webp'
 
 const CATEGORIES = ['All', 'Animal', 'Landscape', 'Portrait', 'Street', 'Architecture', 'Abstract']
 
@@ -19,7 +19,7 @@ const COLOR_SWATCHES = [
   { label: 'Light',   hex: '#e4e4e7' },
 ]
 
-const MOCK: Required<Photo>[] = [
+export const MOCK: Required<Photo>[] = [
   { id:'1',  url:deadfile, ratio:'3/4',  category:'Animal',       prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'85mm f/1.4',  focalLength:'85mm',  shutterSpeed:'1/500s',  aperture:'f/1.4', iso:400,  date:'2024-11-03', location:'Ann Arbor, MI',     descriptor:'Golden hour in the field' } },
   { id:'2',  url:deadfile, ratio:'4/3',  category:'Landscape',    prominentColor:'#2563eb', meta:{ camera:'Sony A7IV', lens:'24mm f/2.8',  focalLength:'24mm',  shutterSpeed:'1/250s',  aperture:'f/8', iso:100,  date:'2024-09-14', location:'Sleeping Bear, MI',  descriptor:'Dune at dusk' } },
   { id:'3',  url:deadfile, ratio:'1/1',  category:'Portrait',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2',  focalLength:'50mm',  shutterSpeed:'1/125s',  aperture:'f/1.8', iso:800,  date:'2024-10-22', location:'Detroit, MI',        descriptor:'Street portrait' } },
