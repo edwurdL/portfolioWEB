@@ -63,14 +63,22 @@ const COURSE_PREVIEWS: Preview[] = TERMS.flatMap(t =>
   }))
 )
 
-/** How many of the newest photos the gallery card rotates through. */
+/** How many photos the gallery card rotates through before repeating. */
 const PHOTO_PREVIEW_COUNT = 8
 
-/** Newest-first, matching the Photos page default sort. */
-function byDateDesc(list: Required<Photo>[]): Required<Photo>[] {
-  return [...list].sort((a, b) =>
-    new Date(b.meta.date ?? 0).getTime() - new Date(a.meta.date ?? 0).getTime()
-  )
+/**
+ * Each card draws from its section at random rather than in order, so a visit
+ * opens on something different. Shuffling the pool once per mount (rather than
+ * picking a random index per swap) means nothing repeats until the rotation
+ * comes back around, and nothing can show twice in a row.
+ */
+function shuffled<T>(list: T[]): T[] {
+  const out = [...list]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
 }
 
 function photoPreview(photo: Required<Photo>): Preview {
@@ -219,6 +227,8 @@ function PageNav() {
 export default function Home() {
   const [stats, setStats] = useState<SiteAnalytics | null>(null)
   const [photoPreviews, setPhotoPreviews] = useState<Preview[]>([PHOTO_PLACEHOLDER])
+  const [projectPreviews] = useState(() => shuffled(PROJECT_PREVIEWS))
+  const [coursePreviews] = useState(() => shuffled(COURSE_PREVIEWS))
 
   useEffect(() => {
     fetchAnalytics().then(setStats).catch(() => {})
@@ -228,7 +238,7 @@ export default function Home() {
     // Same fallback as the Photos page: if the API is unreachable (e.g. CORS
     // during localhost dev), preview the mock set instead of an empty slot.
     const toPreviews = (list: Required<Photo>[]) =>
-      byDateDesc(list).slice(0, PHOTO_PREVIEW_COUNT).map(photoPreview)
+      shuffled(list).slice(0, PHOTO_PREVIEW_COUNT).map(photoPreview)
     fetchPhotos()
       .then(data => setPhotoPreviews(toPreviews(data.length ? data.map(createPhoto) : MOCK_PHOTOS)))
       .catch(() => setPhotoPreviews(toPreviews(MOCK_PHOTOS)))
@@ -294,7 +304,7 @@ export default function Home() {
             to="/projects"
             label="Projects"
             desc="A timeline of things I’ve built"
-            previews={PROJECT_PREVIEWS}
+            previews={projectPreviews}
             beat={0}
           />
           <SectionCard
@@ -308,7 +318,7 @@ export default function Home() {
             to="/coursework"
             label="Coursework"
             desc="Classes I’ve taken"
-            previews={COURSE_PREVIEWS}
+            previews={coursePreviews}
             beat={2}
           />
         </div>
