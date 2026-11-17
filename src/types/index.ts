@@ -65,10 +65,12 @@ export interface Project {
    * coursework and links to that course on the Coursework page.
    */
   course?: string
+  /** A small icon shown right after the title, e.g. the project's own favicon. */
+  icon?: string
 }
 
 /** A Projects page entry: every field filled in except the optional course. */
-export type ProjectEntry = Required<Omit<Project, 'course'>> & Pick<Project, 'course'>
+export type ProjectEntry = Required<Omit<Project, 'course' | 'icon'>> & Pick<Project, 'course' | 'icon'>
 
 export function createProject(p: Partial<Project> & { id: string }): ProjectEntry {
   return {

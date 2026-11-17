@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
+import Lightbox from '../components/Lightbox'
 import { projectPhoto } from '../lib/projectPhotos'
 
 /**
@@ -7,7 +9,8 @@ import { projectPhoto } from '../lib/projectPhotos'
  * shows a dashed slot naming the path it expects; the built site shows nothing.
  *
  * Photos are never stretched past their own size, and are capped in height so
- * a portrait phone shot doesn't run off the screen.
+ * a portrait phone shot doesn't run off the screen. Clicking one enlarges it
+ * over the page (see components/Lightbox) rather than opening a new tab.
  */
 export default function Figure({ folder, file, caption }: {
   folder: string
@@ -15,6 +18,7 @@ export default function Figure({ folder, file, caption }: {
   caption?: string
 }) {
   const src = projectPhoto(folder, file)
+  const [zoomed, setZoomed] = useState(false)
 
   if (!src) {
     if (!import.meta.env.DEV) return null
@@ -32,16 +36,22 @@ export default function Figure({ folder, file, caption }: {
 
   return (
     <figure className="my-8">
-      {/* Clicking opens the full-size file, for screenshots too dense to read in the column. */}
-      <a href={src} target="_blank" rel="noopener noreferrer" className="block cursor-zoom-in">
+      {/* Enlarges in place, for screenshots too dense to read in the column. */}
+      <button
+        type="button"
+        onClick={() => setZoomed(true)}
+        aria-label={caption ? `Enlarge: ${caption}` : 'Enlarge image'}
+        className="block mx-auto max-w-full cursor-zoom-in"
+      >
         <img
           src={src}
           alt={caption ?? ''}
           loading="lazy"
           className="block mx-auto max-w-full max-h-[80vh] rounded-lg border border-zinc-200 dark:border-zinc-800 photo-smooth"
         />
-      </a>
+      </button>
       {caption && <figcaption className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 text-center">{caption}</figcaption>}
+      {zoomed && <Lightbox src={src} alt={caption ?? ''} caption={caption} onClose={() => setZoomed(false)} />}
     </figure>
   )
 }

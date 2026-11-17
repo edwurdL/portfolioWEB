@@ -7,6 +7,7 @@ import VexRobotStructures from './VexRobotStructures'
 import LeapHandRl from './LeapHandRl'
 import CustomOmniWheels from './CustomOmniWheels'
 import PortfolioWebsite from './PortfolioWebsite'
+import Grubblio from './Grubblio'
 
 /**
  * Projects that open as their own page at /projects/<slug> instead of the
@@ -21,6 +22,7 @@ export interface Post {
 }
 
 export const POSTS: Post[] = [
+  { slug: 'grubblio',                 projectId: '13', Body: Grubblio },
   { slug: 'robot-controls-library',   projectId: '10', Body: RobotControlsLibrary },
   { slug: 'portfolio-website',        projectId: '1',  Body: PortfolioWebsite },
   { slug: 'medical-census-dashboard', projectId: '2',  Body: MedicalCensusDashboard },

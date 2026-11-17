@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { PROJECTS, STATUS_LABEL, STATUS_STYLE } from './Projects'
+import { PROJECTS, STATUS_LABEL, STATUS_STYLE, TitleWithIcon } from './Projects'
 import { postBySlug } from '../posts'
 
 function BackLink() {
@@ -45,7 +45,9 @@ export default function ProjectPost() {
             <span className="text-xs text-zinc-400 dark:text-zinc-600">{project.date}</span>
           </div>
 
-          <h1 className="font-serif text-4xl text-zinc-900 dark:text-zinc-100 mb-3">{project.title}</h1>
+          <h1 className="font-serif text-4xl text-zinc-900 dark:text-zinc-100 mb-3">
+            <TitleWithIcon title={project.title} icon={project.icon} size="h-[0.85em]" />
+          </h1>
           <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed mb-4">{project.shortDesc}</p>
 
           <div className="flex flex-wrap items-center gap-1.5">

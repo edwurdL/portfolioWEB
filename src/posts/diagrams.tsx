@@ -451,3 +451,244 @@ export function PhotoPipelineDiagram() {
     </DiagramFigure>
   )
 }
+
+/*
+ * ── grubbl.io ─────────────────────────────────────────────────────────────
+ * Drawn from the grubblio repository (github.com/edwurdL/grubblio):
+ * wrangler.jsonc, server/index.ts, server/daily.ts and migrations/.
+ */
+
+/**
+ * Deployment diagram: one Cloudflare Worker serves the built client, the dish
+ * photos and /api/*, backed by a D1 database; Workers Builds deploys it from
+ * GitHub, and Resend sends sign-in codes.
+ */
+export function GrubblioDeploymentDiagram() {
+  return (
+    <DiagramFigure caption="UML deployment diagram: grubbl.io runs as one Cloudflare Worker with a D1 database">
+      <svg className="uml block w-full h-auto min-w-[640px]" viewBox="0 0 830 470" role="img" aria-labelledby="grub-deploy-title grub-deploy-desc">
+        <title id="grub-deploy-title">How grubbl.io is deployed</title>
+        <desc id="grub-deploy-desc">
+          A push to the grubblio repository on GitHub triggers Cloudflare Workers Builds, which re-downloads the Pixabay dish
+          photos that aren’t in the repo, builds the site, applies any new D1 migrations and deploys the Worker. The Worker serves grubbl.io: the React client
+          and dish photos as static assets, and the API under /api/*, with the dish list bundled into its code. The live Worker never contacts Pixabay or
+          Wikimedia Commons. It reads and
+          writes a D1 database holding the daily puzzles, accounts and game history, and sends sign-in codes through Resend. A
+          player’s browser keeps its guesses in localStorage and replays them to the API.
+        </desc>
+        <Markers id="gdep" />
+
+        <Node x={20} y={50} w={200} h={140} stereo="«service»" name="GitHub" />
+        <Part x={36} y={96} w={168} h={80} stereo="«artifact»" name="grubblio" lines={['code · credits.json', 'Commons photos only']} />
+
+        <Node x={20} y={260} w={200} h={180} stereo="«device»" name="Player’s browser" />
+        <Part x={36} y={316} w={168} h={96} stereo="«artifact»" name="React client" lines={['guesses in localStorage', 'replayed to /api/state', 'session cookie (optional)']} />
+
+        <Node x={300} y={50} w={330} h={400} stereo="«cloud»" name="Cloudflare" />
+        <Part x={316} y={96} w={298} h={70} stereo="«component»" name="Workers Builds" lines={['build: fetch-images --restore → npm run build', 'deploy: apply D1 migrations → wrangler deploy']} />
+        <Part x={316} y={190} w={298} h={130} stereo="«component» Worker · grubbl.io" name="grubblio Worker"
+          lines={['static assets: React client, /images/*.jpg', '/api/* → server/index.ts', 'dishes.ts bundled in (434 dishes)', 'Better Auth · AES-GCM practice ids', 'answer cache per date (in memory)']} />
+        <Part x={316} y={344} w={298} h={84} stereo="«database» D1" name="grubblio"
+          lines={['puzzles · plays', 'user · session · account · verification · rateLimit']} />
+
+        <Node x={670} y={50} w={140} h={110} stereo="«service»" name="Pixabay" />
+        <Part x={682} y={106} w={116} h={40} name="Photo API" />
+        <path className="edge" d="M614 126 H682" markerEnd="url(#gdep-arrow)" />
+        <text className="muted halo" x={648} y={146} textAnchor="middle">restore</text>
+
+        <Node x={670} y={190} w={140} h={110} stereo="«service»" name="Resend" />
+        <Part x={682} y={246} w={116} h={40} name="Email API" />
+
+        {/* GitHub → Workers Builds → Worker */}
+        <path className="edge" d="M204 136 H316" markerEnd="url(#gdep-arrow)" />
+        <text className="label halo" x={260} y={128} textAnchor="middle">push to main</text>
+        <path className="edge" d="M465 166 V190" markerEnd="url(#gdep-arrow)" />
+        <text className="muted" x={473} y={182}>deploy</text>
+
+        {/* Browser → Worker */}
+        <path className="edge accent" d="M204 364 H262 V255 H316" markerEnd="url(#gdep-accent)" />
+        <text className="muted accent-text halo" x={252} y={310} textAnchor="middle" transform="rotate(-90 252 310)">HTTPS · grubbl.io</text>
+
+        {/* Worker → D1, Worker → Resend */}
+        <path className="edge" d="M465 320 V344" markerEnd="url(#gdep-arrow)" />
+        <text className="muted" x={473} y={336}>SQL (D1 binding)</text>
+        <path className="edge" d="M614 266 H682" markerEnd="url(#gdep-arrow)" />
+        <text className="muted halo" x={648} y={258} textAnchor="middle">codes</text>
+      </svg>
+    </DiagramFigure>
+  )
+}
+
+/**
+ * Class diagram of grubbl.io's data: the D1 tables from migrations/0001–0003,
+ * and the dish list, which lives in code (server/dishes.ts), not in D1. Tables
+ * refer to dishes by id.
+ */
+export function GrubblioDataDiagram() {
+  return (
+    <DiagramFigure caption="UML class diagram: grubbl.io’s D1 tables, and the dish list they point to, which lives in the Worker’s code">
+      <svg className="uml block w-full h-auto min-w-[680px]" viewBox="0 0 870 510" role="img" aria-labelledby="grub-data-title grub-data-desc">
+        <title id="grub-data-title">grubbl.io’s data model</title>
+        <desc id="grub-data-desc">
+          The D1 database holds seven tables. puzzles maps each date to the day’s dish id. plays records each signed-in
+          player’s games, keyed by user and puzzle, with the mode (daily or rush), the guesses as JSON and the status (playing,
+          won or lost). Better Auth’s tables hold users, their sessions and sign-in methods (with hashed passwords), emailed
+          verification codes and per-IP rate limits; deleting a user deletes their sessions, accounts and plays. The dishes
+          themselves are not in D1: they are a list of 434 dishes in server/dishes.ts, bundled into the Worker, and puzzles and
+          plays refer to them by id. Each dish’s photo and credit are looked up by id in assets/dishes/credits.json.
+        </desc>
+        <Markers id="gdata" />
+
+        <rect className="frame" x={10} y={10} width={600} height={490} rx={6} />
+        <text className="stereo" x={22} y={28}>«database» D1: grubblio</text>
+
+        <ClassBox x={30} y={40} w={170} stereo="«table» Better Auth" name="user" attrs={[
+          'id {PK}',
+          'name',
+          'email {unique}',
+          'emailVerified',
+          'image [0..1]',
+          'createdAt · updatedAt',
+        ]} />
+        <ClassBox x={230} y={40} w={200} stereo="«table» 0003_plays" name="plays" attrs={[
+          'user_id {PK, FK}',
+          'puzzle_id {PK}',
+          'mode: daily | rush',
+          'dish_id',
+          'guesses: JSON',
+          'guess_count',
+          'status: playing|won|lost',
+          'started_at · updated_at',
+        ]} />
+        <ClassBox x={450} y={40} w={140} stereo="«table» 0001" name="puzzles" attrs={['date {PK}', 'dish_id']} />
+
+        <ClassBox x={30} y={262} w={170} stereo="«table» Better Auth" name="session" attrs={[
+          'id {PK}',
+          'token {unique}',
+          'expiresAt',
+          'userId {FK}',
+          'ipAddress · userAgent',
+        ]} />
+        <ClassBox x={220} y={262} w={190} stereo="«table» Better Auth" name="account" attrs={[
+          'id {PK}',
+          'providerId · accountId',
+          'password [0..1] hashed',
+          'userId {FK}',
+          'tokens [0..1]',
+        ]} />
+        <ClassBox x={430} y={262} w={160} stereo="«table» Better Auth" name="verification" attrs={[
+          'identifier',
+          'value (hashed code)',
+          'expiresAt',
+        ]} />
+        <ClassBox x={430} y={386} w={160} stereo="«table» Better Auth" name="rateLimit" attrs={[
+          'key {unique}',
+          'count',
+          'lastRequest',
+        ]} />
+
+        {/* Outside D1: the dish list in code */}
+        <ClassBox x={650} y={40} w={205} stereo="«TypeScript» server/dishes.ts" name="Dish" attrs={[
+          'id · name · aliases',
+          'emoji · family · country',
+          'diet · palate · course',
+          'method · spice',
+          'ingredients (ordered)',
+        ]} />
+        <text className="muted" x={752} y={196} textAnchor="middle">434 dishes, bundled in the Worker</text>
+        <text className="muted" x={752} y={210} textAnchor="middle">not stored in D1</text>
+
+        <ClassBox x={650} y={262} w={205} stereo="«JSON» assets/dishes" name="credits.json" attrs={[
+          'dish id → file',
+          'credit · creditUrl',
+          '430 photos',
+        ]} />
+        <path className="edge dashed" d="M752 218 V262" markerEnd="url(#gdata-open)" />
+        <text className="muted halo" x={760} y={244}>photo by id</text>
+        <text className="muted" x={752} y={400} textAnchor="middle">195 Commons photos in git;</text>
+        <text className="muted" x={752} y={414} textAnchor="middle">235 Pixabay photos restored</text>
+        <text className="muted" x={752} y={428} textAnchor="middle">at build time</text>
+
+        {/* user 1 — * plays / session / account (ON DELETE CASCADE) */}
+        <path className="edge" d="M200 112 H230" />
+        <text className="muted" x={204} y={106}>1</text>
+        <text className="muted" x={222} y={106}>*</text>
+        <path className="edge" d="M90 184 V262" />
+        <text className="muted" x={96} y={198}>1</text>
+        <text className="muted" x={96} y={256}>*</text>
+        <path className="edge" d="M160 184 V240 H315 V262" />
+        <text className="muted" x={321} y={256}>*</text>
+        <text className="muted halo" x={238} y={256} textAnchor="middle">cascade on delete</text>
+
+        {/* puzzles and plays name a dish by id */}
+        <path className="edge dashed accent" d="M590 84 H650" markerEnd="url(#gdata-accent)" />
+        <text className="muted accent-text halo" x={620} y={76} textAnchor="middle">dish_id</text>
+        <path className="edge dashed accent" d="M430 150 H650" markerEnd="url(#gdata-accent)" />
+        <text className="muted accent-text halo" x={540} y={142} textAnchor="middle">dish_id</text>
+      </svg>
+    </DiagramFigure>
+  )
+}
+
+/**
+ * Activity diagram of the dish photos, from fetching on my machine to being
+ * served by the live Worker. Pixabay's licence forbids redistributing its raw
+ * files, so those photos stay out of git and a GitHub-triggered build
+ * re-downloads them; Wikimedia Commons photos are committed.
+ */
+export function GrubblioPhotosDiagram() {
+  const LANE = 190
+  const ME = 95, GH = 285, BUILD = 475, LIVE = 665
+  return (
+    <DiagramFigure caption="UML activity diagram: how the dish photos get from Pixabay and Wikimedia Commons to grubbl.io">
+      <svg className="uml block w-full h-auto min-w-[640px]" viewBox="0 0 760 480" role="img" aria-labelledby="grub-photo-title grub-photo-desc">
+        <title id="grub-photo-title">How grubbl.io’s dish photos are fetched and served</title>
+        <desc id="grub-photo-desc">
+          On my machine, npm run fetch-images searches Pixabay, or Wikimedia Commons with --source commons, using hand-picked
+          Commons files for dishes where Pixabay had nothing usable, and saves each photo as assets/dishes/(dish id).jpg, recording its credit and source page in credits.json. Pushing to GitHub stores
+          credits.json and the 195 Commons photos; the 235 Pixabay photos are git-ignored, because Pixabay’s licence forbids
+          redistributing the raw files. A GitHub-triggered Cloudflare build runs fetch-images --restore, which re-downloads
+          exactly the Pixabay photos named in credits.json using the Pixabay API key, then npm run build copies the photos into
+          the site under /images/. The live Worker serves /images/(dish id).jpg as static files, with the credit from
+          credits.json; it never contacts Pixabay or Commons, and a dish without a photo shows its emoji. Deploying with npm
+          run deploy from my machine skips the restore and uses the photos already on disk.
+        </desc>
+        <Markers id="gph" />
+
+        {['My machine', 'GitHub', 'Workers Builds', 'grubbl.io Worker'].map((lane, i) => (
+          <g key={lane}>
+            <rect className="lane" x={i * LANE} y={0} width={LANE} height={480} />
+            <text className="name" x={i * LANE + LANE / 2} y={24} textAnchor="middle">{lane}</text>
+          </g>
+        ))}
+        <path className="divider" d="M0 38 H760" />
+
+        <circle className="start" cx={ME} cy={62} r={8} />
+        <path className="edge" d={`M${ME} 70 V88`} markerEnd="url(#gph-arrow)" />
+        <Action cx={ME} y={88} w={170} h={64} lines={['npm run fetch-images', 'Pixabay, or Commons', '+ hand-picked Commons files']} />
+        <path className="edge" d={`M${ME} 152 V176`} markerEnd="url(#gph-arrow)" />
+        <Action cx={ME} y={176} w={170} h={64} lines={['Save each photo', 'assets/dishes/<id>.jpg', '+ credit in credits.json']} />
+        <text className="muted" x={ME} y={276} textAnchor="middle">npm run deploy from here</text>
+        <text className="muted" x={ME} y={290} textAnchor="middle">skips the restore and uses</text>
+        <text className="muted" x={ME} y={304} textAnchor="middle">the photos on disk</text>
+
+        <path className="edge" d={`M${ME + 85} 208 H${GH - 85}`} markerEnd="url(#gph-arrow)" />
+        <Action cx={GH} y={176} w={170} h={64} lines={['git push', 'credits.json + 195 Commons', '235 Pixabay git-ignored']} />
+
+        <path className="edge accent" d={`M${GH} 240 V296 H${BUILD - 85}`} markerEnd="url(#gph-accent)" />
+        <text className="muted accent-text halo" x={GH + 4} y={268}>triggers build</text>
+        <Action cx={BUILD} y={264} w={170} h={64} lines={['fetch-images --restore', 'the 235 Pixabay photos', 'in credits.json (API key)']} />
+        <path className="edge" d={`M${BUILD} 328 V352`} markerEnd="url(#gph-arrow)" />
+        <Action cx={BUILD} y={352} w={170} h={50} lines={['npm run build', 'copies jpgs to /images/']} />
+
+        <path className="edge" d={`M${BUILD + 85} 377 H${LIVE - 85}`} markerEnd="url(#gph-arrow)" />
+        <Action cx={LIVE} y={344} w={170} h={66} lines={['Serve /images/<id>.jpg', 'credit from credits.json', 'no photo → emoji']} />
+        <path className="edge" d={`M${LIVE} 410 V432`} markerEnd="url(#gph-arrow)" />
+        <circle className="end-ring" cx={LIVE} cy={442} r={10} />
+        <circle className="start" cx={LIVE} cy={442} r={6} />
+        <text className="muted" x={LIVE} y={110} textAnchor="middle">Never contacts Pixabay</text>
+        <text className="muted" x={LIVE} y={124} textAnchor="middle">or Commons</text>
+      </svg>
+    </DiagramFigure>
+  )
+}

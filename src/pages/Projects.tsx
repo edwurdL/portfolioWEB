@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ProjectCategory, ProjectEntry, ProjectStatus } from '../types'
-import { photosFor } from '../lib/projectPhotos'
+import { photosFor, projectPhoto } from '../lib/projectPhotos'
 import { postForProject } from '../posts'
 import { courseAnchor, PRIVATE_CODE_NOTE } from './Coursework'
 
@@ -39,7 +39,43 @@ function savedFilter(): Filter {
   }
 }
 
+/**
+ * A project title with its icon, if it has one, right after the name. The
+ * icon is pixel art, so it's scaled without smoothing; `size` is a height
+ * class relative to the title's font size.
+ */
+export function TitleWithIcon({ title, icon, size }: { title: string; icon?: string; size: string }) {
+  if (!icon) return <>{title}</>
+  return (
+    <>
+      {title}
+      <img
+        src={icon}
+        alt=""
+        className={`inline-block w-auto ${size} ml-[0.3em] align-[-0.12em]`}
+        style={{ imageRendering: 'pixelated' }}
+      />
+    </>
+  )
+}
+
 export const PROJECTS: ProjectEntry[] = [
+  {
+    id: '13',
+    title: 'grubbl.io',
+    category: 'software',
+    date: 'Oct–Nov 2026',
+    shortDesc: 'A daily food-guessing game at grubbl.io: name the dish from its ingredients, with Wordle-style hints, running on one Cloudflare Worker with a D1 database and optional accounts.',
+    fullDesc: 'A daily guessing game: guess the dish from its ingredients, starting with three and revealing one more after each wrong guess, with color-coded hints comparing each guess to the answer on type, origin, diet, palate, course, method, spice and shared ingredients. One Cloudflare Worker serves the React client and the API; the day’s answer is picked on first request and stored in Cloudflare D1, alongside optional accounts (Better Auth, with emailed sign-in codes) and game history.',
+    tags: ['TypeScript', 'React', 'Cloudflare Workers', 'Cloudflare D1', 'Better Auth'],
+    status: 'deployed',
+    repoUrl: 'https://github.com/edwurdL/grubblio',
+    liveUrl: 'https://grubbl.io',
+    // Screenshots are placed in its post (src/posts/Grubblio.tsx).
+    images: [],
+    // The game's chef-hat favicon, from the grubblio repo's public/favicon.svg.
+    icon: projectPhoto('grubblio', 'icon.svg'),
+  },
   {
     id: '10',
     title: 'Robot Controls Library',
@@ -266,7 +302,9 @@ export default function Projects() {
                     {/* On a phone the badge and date drop below the title so neither
                         squeezes it; from sm up they share its row. */}
                     <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 mb-2">
-                      <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{p.title}</h3>
+                      <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100">
+                        <TitleWithIcon title={p.title} icon={p.icon} size="h-[1.1em]" />
+                      </h3>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {p.course ? (
                           <span className="text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">

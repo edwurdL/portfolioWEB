@@ -3,9 +3,10 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import profileImg from '../assets/headshot.webp'
 import { loadPhotos } from '../lib/api'
+import { projectPhoto } from '../lib/projectPhotos'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
-import { PROJECTS, STATUS_LABEL } from './Projects'
+import { PROJECTS, STATUS_LABEL, TitleWithIcon } from './Projects'
 import { POSTS, postBySlug } from '../posts'
 import { TERMS } from './Coursework'
 import { MOCK as MOCK_PHOTOS } from './Photos'
@@ -36,8 +37,14 @@ type Feature = {
   title?: string
   highlight: string
   detail: string
-  /** Draws the card in teal so it stands out from the rest. */
+  /** Draws the card in teal, full width above the rest, so it stands out. */
   accent?: boolean
+  /**
+   * A picture or animation shown above the text, from the project's photo
+   * folder. `still` is shown instead of an animated `src` to visitors who've
+   * asked their system for reduced motion.
+   */
+  media?: { src?: string; still?: string; alt: string; fit: 'contain' | 'cover' }
 }
 
 const FEATURED = ([
@@ -51,11 +58,24 @@ const FEATURED = ([
   },
   {
     slug: 'robot-controls-library',
+    // A 216px-wide animated WebP made from the post's test-route.gif (12.5 MB),
+    // so the home page doesn't download the full GIF.
+    media: {
+      src: projectPhoto('robot-controls-library', 'test-route-preview.webp'),
+      still: projectPhoto('robot-controls-library', 'test-route-still.webp'),
+      alt: 'The robot driving a test route after auto-tuning',
+      fit: 'contain',
+    },
     highlight: 'Autotuned PID cut a 90° turn from 1.8 s to 0.68 s',
     detail: 'My team’s own motion-control library. Its autotune measures the drivetrain, computes the gains, then tests them on the robot: kP climbed from 0.44 to 0.91 before a turn overshot.',
   },
   {
     slug: 'medical-census-dashboard',
+    media: {
+      src: projectPhoto('medical-census-dashboard', 'dashboard.webp'),
+      alt: 'The census dashboard',
+      fit: 'cover',
+    },
     highlight: '400,000+ census data points in one dashboard',
     detail: 'A Tableau dashboard for trends across demographics and geography, fed by an ETL pipeline I’m building that adds stay IDs and readmission flags.',
   },
@@ -74,7 +94,9 @@ const PROJECT_PREVIEWS: Preview[] = PROJECTS.filter(p => POSTS.some(post => post
   content: (
     <>
       <div className="flex items-baseline justify-between gap-3 mb-1">
-        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{p.title}</p>
+        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
+          <TitleWithIcon title={p.title} icon={p.icon} size="h-[1.1em]" />
+        </p>
         <span className="text-[0.65rem] text-zinc-400 dark:text-zinc-600 whitespace-nowrap tabular-nums">
           {p.date}
         </span>
@@ -337,41 +359,13 @@ export default function Home() {
         <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
           Featured projects
         </h2>
+        {/* The accent card runs full width on top; the rest sit side by side
+            under it (stacked on a phone), each led by its picture. */}
         <div className="flex flex-col gap-3">
-          {FEATURED.map(({ slug, title, highlight, detail, accent, project }) => (
-            <Link
-              key={slug}
-              to={`/projects/${slug}`}
-              // The accent card is teal, the same colour as this project's
-              // "deployed" status on the Projects page.
-              className={`group block rounded-xl border p-5 hover:shadow-sm transition-all ${
-                accent
-                  ? 'border-teal-300 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 hover:border-teal-500 dark:hover:border-teal-600'
-                  : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
-              }`}
-            >
-              <div className="flex items-baseline justify-between gap-3 mb-2">
-                <p className={`text-sm font-medium ${accent ? 'text-teal-800 dark:text-teal-300' : 'text-zinc-800 dark:text-zinc-200'}`}>
-                  {title}
-                </p>
-                <span className={`text-[0.65rem] whitespace-nowrap tabular-nums ${accent ? 'text-teal-600 dark:text-teal-500' : 'text-zinc-400 dark:text-zinc-600'}`}>
-                  {project.date}
-                </span>
-              </div>
-              <p className={`font-serif text-2xl leading-snug mb-2 ${accent ? 'text-teal-950 dark:text-teal-50' : 'text-zinc-900 dark:text-zinc-100'}`}>
-                {highlight}
-              </p>
-              <p className={`text-sm leading-relaxed ${accent ? 'text-teal-900/75 dark:text-teal-100/70' : 'text-zinc-500 dark:text-zinc-400'}`}>{detail}</p>
-              <p className={`mt-3 text-xs transition-colors ${
-                accent
-                  ? 'text-teal-700 dark:text-teal-400 group-hover:text-teal-900 dark:group-hover:text-teal-200'
-                  : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
-              }`}>
-                Read the write-up{' '}
-                <span className="inline-block group-hover:translate-x-0.5 transition-transform">→</span>
-              </p>
-            </Link>
-          ))}
+          {FEATURED.filter(f => f.accent).map(f => <FeaturedCard key={f.slug} {...f} />)}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {FEATURED.filter(f => !f.accent).map(f => <FeaturedCard key={f.slug} {...f} />)}
+          </div>
         </div>
       </section>
 
@@ -411,6 +405,58 @@ export default function Home() {
       </footer>
     </main>
     </>
+  )
+}
+
+function FeaturedCard({ slug, title, highlight, detail, accent, media, project }: (typeof FEATURED)[number]) {
+  return (
+    <Link
+      to={`/projects/${slug}`}
+      // The accent card is teal, the same colour as this project's
+      // "deployed" status on the Projects page.
+      className={`group flex flex-col rounded-xl border overflow-hidden hover:shadow-sm transition-all ${
+        accent
+          ? 'border-teal-300 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 hover:border-teal-500 dark:hover:border-teal-600'
+          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+      }`}
+    >
+      {media?.src && (
+        <div className="h-44 bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-800">
+          <picture>
+            {media.still && <source srcSet={media.still} media="(prefers-reduced-motion: reduce)" />}
+            <img
+              src={media.src}
+              alt={media.alt}
+              loading="lazy"
+              decoding="async"
+              className={`w-full h-full ${media.fit === 'cover' ? 'object-cover object-left-top' : 'object-contain'}`}
+            />
+          </picture>
+        </div>
+      )}
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
+          <p className={`text-sm font-medium ${accent ? 'text-teal-800 dark:text-teal-300' : 'text-zinc-800 dark:text-zinc-200'}`}>
+            {title}
+          </p>
+          <span className={`text-[0.65rem] whitespace-nowrap tabular-nums ${accent ? 'text-teal-600 dark:text-teal-500' : 'text-zinc-400 dark:text-zinc-600'}`}>
+            {project.date}
+          </span>
+        </div>
+        <p className={`font-serif text-2xl leading-snug mb-2 ${accent ? 'text-teal-950 dark:text-teal-50' : 'text-zinc-900 dark:text-zinc-100'}`}>
+          {highlight}
+        </p>
+        <p className={`text-sm leading-relaxed ${accent ? 'text-teal-900/75 dark:text-teal-100/70' : 'text-zinc-500 dark:text-zinc-400'}`}>{detail}</p>
+        <p className={`mt-auto pt-3 text-xs transition-colors ${
+          accent
+            ? 'text-teal-700 dark:text-teal-400 group-hover:text-teal-900 dark:group-hover:text-teal-200'
+            : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
+        }`}>
+          Read the write-up{' '}
+          <span className="inline-block group-hover:translate-x-0.5 transition-transform">→</span>
+        </p>
+      </div>
+    </Link>
   )
 }
 
