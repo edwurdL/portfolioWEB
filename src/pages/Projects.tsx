@@ -1,26 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { Project, ProjectStatus } from '../types'
+import { Link } from 'react-router-dom'
+import type { Project, ProjectCategory, ProjectStatus } from '../types'
+import { photosFor } from '../lib/projectPhotos'
+import { postForProject } from '../posts'
 
-// Project photos live in src/assets/projects/<folder>/. Drop up to two images
-// into a folder and they show up in that project's modal, ordered by filename;
-// a project whose folder is empty renders no photos at all.
-const PROJECT_PHOTOS = import.meta.glob(
-  '../assets/projects/*/*.{png,jpg,jpeg,webp,avif,svg}',
-  { eager: true, query: '?url', import: 'default' }
-) as Record<string, string>
-
-const MAX_PHOTOS = 2
-
-function photosFor(folder: string): string[] {
-  const prefix = `../assets/projects/${folder}/`
-  const files = Object.keys(PROJECT_PHOTOS).filter(path => path.startsWith(prefix)).sort()
-  if (import.meta.env.DEV && files.length > MAX_PHOTOS) {
-    console.warn(`[projects] ${folder}/ holds ${files.length} photos — only the first ${MAX_PHOTOS} are shown.`)
-  }
-  return files.slice(0, MAX_PHOTOS).map(path => PROJECT_PHOTOS[path])
-}
-
-const STATUS_STYLE: Record<ProjectStatus, string> = {
+export const STATUS_STYLE: Record<ProjectStatus, string> = {
   'completed':   'bg-green-50  dark:bg-green-900/20 text-green-700  dark:text-green-400',
   'in-progress': 'bg-blue-50   dark:bg-blue-900/20  text-blue-700   dark:text-blue-400',
   'deployed':    'bg-teal-50   dark:bg-teal-900/20  text-teal-700   dark:text-teal-400',
@@ -32,10 +16,46 @@ export const STATUS_LABEL: Partial<Record<ProjectStatus, string>> = {
   'deployed': 'deployed · maintaining',
 }
 
+type Filter = 'all' | ProjectCategory
+
+const FILTERS: { value: Filter; label: string }[] = [
+  { value: 'all',      label: 'All' },
+  { value: 'robotics', label: 'Robotics' },
+  { value: 'software', label: 'Software' },
+]
+
+// Remembered for the tab's session so opening a project page and coming back
+// keeps the list filtered the same way. Storage can be unavailable (private
+// windows, blocked site data), in which case the filter just starts at All.
+const FILTER_KEY = 'projects-filter'
+
+function savedFilter(): Filter {
+  try {
+    const v = sessionStorage.getItem(FILTER_KEY)
+    return FILTERS.some(f => f.value === v) ? (v as Filter) : 'all'
+  } catch {
+    return 'all'
+  }
+}
+
 export const PROJECTS: Required<Project>[] = [
+  {
+    id: '10',
+    title: 'Robot Controls Library',
+    category: 'robotics',
+    date: 'Oct 2026',
+    shortDesc: 'A robot motion-control library based on LemLib, rewritten for lower memory use and third-party sensor support, with PID auto-tuning and automatic tracking wheel offsets.',
+    fullDesc: 'A robot motion-control library based on LemLib, rewritten from the ground up to be more memory efficient and to support integrating third-party sensors alongside the stock hardware. Beyond the rewrite, it adds automatic tuning of PID constants, so controllers can be dialed in from measured robot behavior instead of hand-tuned by trial and error, and automatic tracking wheel offset calibration, so odometry no longer depends on manually measuring where each tracking wheel sits on the chassis.',
+    tags: ['C++', 'Robotics', 'PID', 'Odometry', 'Embedded'],
+    status: 'in-progress',
+    repoUrl: '',
+    liveUrl: '',
+    images: photosFor('robot-controls-library'),
+  },
   {
     id: '1',
     title: 'Portfolio Website & Self-Hosted Server',
+    category: 'software',
     date: 'Jul 2026',
     shortDesc: 'Personal portfolio built with React and Tailwind, backed by a self-hosted remote server serving a custom photo and projects API.',
     fullDesc: 'A responsive personal portfolio built from scratch with React 19, Tailwind CSS v4, and Vite — featuring dark mode with animated theme transitions, page transitions, a filterable masonry photo gallery, and live site analytics. Content is served from a self-hosted remote server exposing a REST API for photos (with full EXIF metadata) and projects, fronted by Cloudflare for caching and traffic analytics.',
@@ -48,6 +68,7 @@ export const PROJECTS: Required<Project>[] = [
   {
     id: '2',
     title: 'Medical Census Analytics Dashboard',
+    category: 'software',
     date: 'Jul 2026',
     shortDesc: 'Tableau dashboard aggregating 400k+ state-wide medical census data points for high-dimensional trend analysis, with an ETL pipeline in progress.',
     fullDesc: 'Developed a medical census analytics dashboard aggregating over 400,000 state-wide data points, enabling deep trend visibility and high-dimensional analysis across demographic and geographic breakdowns. Currently building an ETL data pipeline to automate ingestion, cleaning, and transformation of incoming census data feeding the dashboard.',
@@ -62,6 +83,7 @@ export const PROJECTS: Required<Project>[] = [
   {
     id: '3',
     title: 'ESP32 Sensor Coprocessor for Position Tracking',
+    category: 'robotics',
     date: 'Jun 2026',
     shortDesc: 'Third-party VL53L1X time-of-flight sensors read over I2C by an ESP32 coprocessor, streamed over serial to the main robot controller to validate position tracking.',
     fullDesc: 'Integrated third-party VL53L1X time-of-flight distance sensors into a robot whose controller had no native support for them, using an ESP32 as a dedicated sensor coprocessor. The ESP32 drives the sensors over I2C — handling device addressing, configuration, and ranging timing — and forwards readings to the main robot controller over a serial link, keeping sensor I/O off the controller’s main loop. Used the resulting distance measurements as an independent reference for position tracking, cross-checking the robot’s reported pose against measured distances to fixed field elements to confirm the tracking held up over a match.',
@@ -74,6 +96,7 @@ export const PROJECTS: Required<Project>[] = [
   {
     id: '4',
     title: 'Custom-Manufactured VEX Robot Structures',
+    category: 'robotics',
     date: 'Jan–May 2026',
     shortDesc: 'Laser-cut sheet plastic and metal structural parts for VEX competition robots, manufactured in-house to trade weight against rigidity where each subsystem needed it.',
     fullDesc: 'Designed and manufactured custom structural components for VEX competition robots, replacing stock parts with laser-cut sheet plastic and metal chosen per subsystem. Selected material and thickness against the loads each part actually carried, then cut lightening pockets into low-stress regions to strip mass without giving up stiffness, and added gussets and laminated layers where parts saw torsion. Matched hole patterns to the VEX grid so custom parts stayed compatible with off-the-shelf hardware and could be swapped in mid-build. Iterated across the season — each revision tested on the robot, then re-cut — converging on structures that stayed rigid under impact while keeping the robot light enough to hit its handling targets.',
@@ -86,6 +109,7 @@ export const PROJECTS: Required<Project>[] = [
   {
     id: '5',
     title: 'Operating System File System',
+    category: 'software',
     date: 'Apr 2026',
     shortDesc: 'A UNIX-style filesystem in C++ with inodes, directory entries, and crash-consistent, atomic block allocation.',
     fullDesc: 'Built a UNIX-style filesystem in C++, implementing inodes, directory entries, and block allocation with lazy deletion to mirror real-world filesystem behavior. Engineered crash-consistent storage by leveraging atomic multi-step filesystem operations, ensuring metadata and data integrity are preserved across unexpected system failures with zero data corruption. Hardened reliability with input reconstruction-based validation — parsing and rebuilding user input to enforce strict correctness guarantees and eliminate malformed or malicious operation requests.',
@@ -98,6 +122,7 @@ export const PROJECTS: Required<Project>[] = [
   {
     id: '6',
     title: 'Virtual Memory Pager',
+    category: 'software',
     date: 'Mar 2026',
     shortDesc: 'A demand-paging virtual memory pager for RAM using the clock eviction algorithm with deferred eviction and overwriting.',
     fullDesc: 'Built a demand-paging virtual memory pager managing physical RAM. Implemented the clock (second-chance) algorithm for page eviction, along with deferred eviction and deferred overwriting to avoid unnecessary disk writes and page copies until a page is actually modified. Handled page faults, resident and swap-backed state tracking, and reference/dirty bit management to preserve correctness under memory pressure.',
@@ -110,6 +135,7 @@ export const PROJECTS: Required<Project>[] = [
   {
     id: '7',
     title: 'CPU Scheduler',
+    category: 'software',
     date: 'Feb 2026',
     shortDesc: 'A CPU scheduler handling interrupts, context switching, and mutex-based synchronization under preemption.',
     fullDesc: 'Implemented a CPU scheduler that drives process execution through interrupt handling, context switching between threads, and mutex-based synchronization. Coordinated safe access to shared kernel state and enforced correct scheduling semantics under preemption, avoiding race conditions across concurrent context swaps.',
@@ -122,6 +148,7 @@ export const PROJECTS: Required<Project>[] = [
   {
     id: '8',
     title: 'Multithreaded Pizza Delivery Matching',
+    category: 'software',
     date: 'Feb 2026',
     shortDesc: 'A multithreaded order-to-driver matching simulation coordinating concurrent assignment with basic locks.',
     fullDesc: 'Built a multithreaded pizza delivery matching system that pairs incoming orders with available drivers concurrently. Used basic locks and condition variables to coordinate shared state between producer and consumer threads, preventing race conditions and deadlock while sustaining throughput under concurrent load.',
@@ -132,12 +159,42 @@ export const PROJECTS: Required<Project>[] = [
     images: photosFor('pizza-delivery-matching'),
   },
   {
+    id: '12',
+    title: 'Custom Ball-Bearing Omni Wheels',
+    category: 'robotics',
+    date: 'Dec 2024 – Aug 2025',
+    shortDesc: 'Ball-bearing omni wheels for VEX to cut rotational friction, iterated from a fully custom clamshell wheel to a hybrid of stock VEX wheels with lightweight bearing adapters.',
+    fullDesc: 'VEX robots typically run on VEX’s own omni wheels. To reduce rotational friction, designed ball-bearing omni wheels over several iterations: a fully custom clamshell wheel reusing high-strength-shaft bearings (heavy, with the gear printed into the backplate), a modular, pocketed version with swappable gears, and a hybrid that adds lightweight small-bearing adapters to stock VEX wheels. Also prototyped a replacement wheel housing with bearings built in. The hybrid is the design in use.',
+    tags: ['Mechanical Design', 'VEX', 'Robotics', 'Prototyping'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+    // Photos are placed in its post (src/posts/CustomOmniWheels.tsx); the
+    // two-photo modal list doesn't apply.
+    images: [],
+  },
+  {
+    id: '11',
+    title: 'LEAP Hand Reinforcement Learning',
+    category: 'robotics',
+    date: 'Jun–Jul 2024',
+    shortDesc: 'A summer project to learn Linux by recreating the LEAP Hand reinforcement learning setup, debugging the wiring and code until training and testing ran on the real hand.',
+    fullDesc: 'A project after freshman year focused on learning Linux and getting a real robotics setup running. Recreated the research setup for the LEAP Hand, a low-cost anthropomorphic robot hand from Carnegie Mellon, so it ran correctly: setting up virtual environments, resolving compatibility issues, moving from a virtual machine to a dual-boot Linux PC when training needed a GPU, and debugging both the wiring and the Python code. Then ran the reinforcement learning training and tested the result on the hand.',
+    tags: ['Linux', 'Python', 'Reinforcement Learning', 'Robotics'],
+    status: 'completed',
+    repoUrl: '',
+    liveUrl: '',
+    // Photos are placed in its post (src/posts/LeapHandRl.tsx).
+    images: [],
+  },
+  {
     id: '9',
     title: 'CR-10 Controller & Firmware Overhaul',
+    category: 'robotics',
     date: 'Dec 2023',
-    shortDesc: 'Rebuilt a Creality CR-10 around a new motherboard with silent stepper drivers, BLTouch auto bed leveling, and touchscreen control, with firmware configured to match.',
-    fullDesc: 'Overhauled the electronics on a Creality CR-10 3D printer. Swapped the stock control board for a new motherboard running silent stepper drivers, cutting the printer’s running noise to near-silent while holding step accuracy. Added a BLTouch probe for automatic bed leveling and replaced the stock knob controller with a touchscreen interface. Wired the new hardware and configured the firmware around it — probe offsets and deployment, mesh bed leveling, driver and endstop setup, and thermal settings — then validated the rebuild with leveling runs and first-layer test prints until the bed compensated correctly across its full area.',
-    tags: ['3D Printing', 'Firmware', 'Electronics', 'Hardware'],
+    shortDesc: 'After a bad firmware flash bricked a Creality CR-10’s stock board, rebuilt it around a BTT SKR 3 with new stepper drivers, a TFT35 E3 touchscreen, and BLTouch auto bed leveling, running a custom Marlin build.',
+    fullDesc: 'Set out to add a BLTouch auto bed leveling probe to a Creality CR-10, which meant flashing new firmware onto its stock motherboard. The wrong firmware went on, and with no bootloader on that board, the printer was bricked. Rather than revive the stock board, overhauled the electronics: a BIGTREETECH SKR 3 motherboard with new silent stepper drivers, a BIGTREETECH TFT35 E3 touchscreen in place of the stock knob controller, and the BLTouch. Configured a custom Marlin firmware build for this printer — probe offsets and deployment, mesh bed leveling, driver and endstop setup, and thermal settings — flashed it onto the SKR 3, then validated the rebuild with leveling runs and first-layer test prints until the bed compensated correctly across its full area.',
+    tags: ['3D Printing', 'Marlin', 'Firmware', 'Electronics', 'Hardware'],
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
@@ -146,7 +203,8 @@ export const PROJECTS: Required<Project>[] = [
 ]
 
 export default function Projects() {
-  const projects = PROJECTS
+  const [filter, setFilter] = useState<Filter>(savedFilter)
+  const projects = filter === 'all' ? PROJECTS : PROJECTS.filter(p => p.category === filter)
   const [selected, setSelected] = useState<Required<Project> | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [shotRatios, setShotRatios] = useState<Record<string, string>>({})
@@ -177,11 +235,17 @@ export default function Projects() {
     setTimeout(() => setZoomed(null), 250)
   }
 
+  const chooseFilter = (f: Filter) => {
+    setFilter(f)
+    try { sessionStorage.setItem(FILTER_KEY, f) } catch { /* not remembered; fine */ }
+  }
+
   // Group consecutive projects by year so the timeline can show a year header
-  // (like the Coursework page). Projects are already newest-first.
+  // (like the Coursework page). Projects are already newest-first, ordered by
+  // when they ended, so a range like "Dec 2024 – Aug 2025" files under 2025.
   const groups: { year: string; items: Required<Project>[] }[] = []
   for (const p of projects) {
-    const year = p.date.split(' ')[1] ?? '—'
+    const year = p.date.match(/\d{4}/g)?.at(-1) ?? '—'
     const last = groups[groups.length - 1]
     if (last && last.year === year) last.items.push(p)
     else groups.push({ year, items: [p] })
@@ -193,6 +257,23 @@ export default function Projects() {
         <header className="mb-10">
           <h1 className="font-serif text-3xl text-zinc-900 dark:text-zinc-100 mb-1">Projects</h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Things I’ve built.</p>
+
+          <div role="group" aria-label="Filter projects" className="flex flex-wrap gap-2 mt-5">
+            {FILTERS.map(f => (
+              <button
+                key={f.value}
+                onClick={() => chooseFilter(f.value)}
+                aria-pressed={filter === f.value}
+                className={`px-3 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
+                  filter === f.value
+                    ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                    : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-400 dark:hover:border-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </header>
 
         <div className="relative">
@@ -208,16 +289,12 @@ export default function Projects() {
                 </h2>
               </div>
 
-              {items.map(p => (
-                <div key={p.id} className="relative pl-8 mb-8">
-                  {/* Timeline dot */}
-                  <div className="absolute left-[-4px] top-5 w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 ring-2 ring-white dark:ring-zinc-900" />
-
-                  {/* Card */}
-                  <div
-                    onClick={() => setSelected(p)}
-                    className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-md transition-all"
-                  >
+              {items.map(p => {
+                // Projects with a post open their own page; the rest open the modal.
+                const post = postForProject(p.id)
+                const cardClass = 'group block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-md transition-all'
+                const cardBody = (
+                  <>
                     <div className="flex items-start justify-between gap-4 mb-2">
                       <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{p.title}</h3>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -237,9 +314,30 @@ export default function Projects() {
                         </span>
                       ))}
                     </div>
+
+                    {post && (
+                      <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
+                        Read the write-up{' '}
+                        <span className="inline-block group-hover:translate-x-0.5 transition-transform">→</span>
+                      </p>
+                    )}
+                  </>
+                )
+
+                return (
+                  <div key={p.id} className="relative pl-8 mb-8">
+                    {/* Timeline dot */}
+                    <div className="absolute left-[-4px] top-5 w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 ring-2 ring-white dark:ring-zinc-900" />
+
+                    {/* Card */}
+                    {post ? (
+                      <Link to={`/projects/${post.slug}`} className={cardClass}>{cardBody}</Link>
+                    ) : (
+                      <div onClick={() => setSelected(p)} className={cardClass}>{cardBody}</div>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ))}
 

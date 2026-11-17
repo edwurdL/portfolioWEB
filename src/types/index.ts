@@ -44,9 +44,13 @@ export function createPhotoMeta(meta: PhotoMeta = {}): Required<PhotoMeta> {
 
 export type ProjectStatus = 'completed' | 'in-progress' | 'deployed' | 'archived'
 
+/** Which filter on the Projects page a project falls under. */
+export type ProjectCategory = 'robotics' | 'software'
+
 export interface Project {
   id: string
   title?: string
+  category?: ProjectCategory
   date?: string
   shortDesc?: string
   fullDesc?: string
@@ -62,6 +66,7 @@ export function createProject(p: Partial<Project> & { id: string }): Required<Pr
   return {
     id:        p.id,
     title:     p.title     ?? 'Untitled',
+    category:  p.category  ?? 'software',
     date:      p.date      ?? 'N/A',
     shortDesc: p.shortDesc ?? 'N/A',
     fullDesc:  p.fullDesc  ?? 'N/A',

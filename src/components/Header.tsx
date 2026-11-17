@@ -39,7 +39,7 @@ export default function Header() {
               key={to}
               to={to}
               className={`px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
-                pathname === to
+                pathname === to || pathname.startsWith(`${to}/`)
                   ? 'text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}

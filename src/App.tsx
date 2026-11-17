@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Projects from './pages/Projects'
+import ProjectPost from './pages/ProjectPost'
 import Photos from './pages/Photos'
 import Coursework from './pages/Coursework'
 import Header from './components/Header'
@@ -35,6 +36,7 @@ function AnimatedRoutes() {
       <Routes location={displayLocation}>
         <Route path="/" element={<Home />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:slug" element={<ProjectPost />} />
         <Route path="/photos" element={<Photos />} />
         <Route path="/coursework" element={<Coursework />} />
       </Routes>
