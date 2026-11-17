@@ -98,14 +98,15 @@ export const PROJECTS: ProjectEntry[] = [
     id: '4',
     title: 'Custom-Manufactured VEX Robot Structures',
     category: 'robotics',
-    date: 'Jan–May 2026',
-    shortDesc: 'Laser-cut sheet plastic and metal structural parts for VEX competition robots, manufactured in-house to trade weight against rigidity where each subsystem needed it.',
+    date: 'Dec 2025 – May 2026',
+    shortDesc: 'Laser-cut sheet plastic and metal structural parts for VEX competition robots, including a robot I designed and built, taken from an ABS prototype to a production version in polypropylene and aluminum.',
     fullDesc: 'Designed and manufactured custom structural components for VEX competition robots, replacing stock parts with laser-cut sheet plastic and metal chosen per subsystem. Selected material and thickness against the loads each part actually carried, then cut lightening pockets into low-stress regions to strip mass without giving up stiffness, and added gussets and laminated layers where parts saw torsion. Matched hole patterns to the VEX grid so custom parts stayed compatible with off-the-shelf hardware and could be swapped in mid-build. Iterated across the season — each revision tested on the robot, then re-cut — converging on structures that stayed rigid under impact while keeping the robot light enough to hit its handling targets.',
     tags: ['Mechanical Design', 'CAD', 'Laser Cutting', 'Manufacturing', 'VEX'],
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
-    images: photosFor('vex-robot-structures'),
+    // Photos are placed in its post (src/posts/VexRobotStructures.tsx).
+    images: [],
   },
   {
     // EECS 482 assignments, grouped into one card that links to the course on
