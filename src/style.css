@@ -60,3 +60,53 @@ img {
     animation: none;
   }
 }
+
+/* UML diagrams in project posts (src/posts/diagrams.tsx). Colours are set here
+   once, for both themes, so the SVG markup only names roles. */
+.uml {
+  --uml-ink: #27272a;
+  --uml-muted: #71717a;
+  --uml-line: #a1a1aa;
+  --uml-node: #f4f4f5;
+  --uml-node-side: #e4e4e7;
+  --uml-part: #ffffff;
+  --uml-accent: #0f766e;
+  --uml-bg: #ffffff;
+  font-family: var(--font-sans);
+}
+html.dark .uml {
+  --uml-ink: #e4e4e7;
+  --uml-muted: #a1a1aa;
+  --uml-line: #71717a;
+  --uml-node: #27272a;
+  --uml-node-side: #3f3f46;
+  --uml-part: #18181b;
+  --uml-accent: #2dd4bf;
+  --uml-bg: #18181b;
+}
+.uml text { fill: var(--uml-ink); font-size: 12px; }
+.uml .name { font-weight: 500; }
+.uml .label { font-size: 11.5px; }
+.uml .muted { fill: var(--uml-muted); font-size: 10.5px; }
+.uml .stereo { fill: var(--uml-muted); font-size: 10.5px; font-style: italic; }
+.uml .accent-text { fill: var(--uml-accent); }
+.uml .halo { paint-order: stroke; stroke: var(--uml-bg); stroke-width: 4px; stroke-linejoin: round; }
+.uml .node { fill: var(--uml-node); stroke: var(--uml-line); }
+.uml .node-side { fill: var(--uml-node-side); stroke: var(--uml-line); stroke-linejoin: round; }
+.uml .part { fill: var(--uml-part); stroke: var(--uml-line); }
+.uml .edge { fill: none; stroke: var(--uml-line); stroke-width: 1.3; }
+.uml .edge.accent { stroke: var(--uml-accent); stroke-width: 1.8; }
+.uml .edge.dashed { stroke-dasharray: 5 4; }
+.uml .lifeline { stroke: var(--uml-line); stroke-dasharray: 4 4; }
+.uml .activation { fill: var(--uml-node); stroke: var(--uml-line); }
+.uml .frame { fill: none; stroke: var(--uml-line); stroke-dasharray: 6 4; }
+.uml .frame-tag { fill: var(--uml-node); stroke: var(--uml-line); }
+.uml .divider { stroke: var(--uml-line); stroke-dasharray: 6 4; }
+.uml .head { fill: var(--uml-line); }
+.uml .head-accent { fill: var(--uml-accent); }
+.uml .head-open { fill: none; stroke: var(--uml-line); stroke-width: 1.3; }
+.uml .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.uml .lane { fill: none; stroke: var(--uml-line); }
+.uml .start { fill: var(--uml-ink); }
+.uml .end-ring { fill: none; stroke: var(--uml-ink); stroke-width: 1.5; }
+.uml .diamond { fill: var(--uml-ink); }

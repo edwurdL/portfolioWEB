@@ -25,10 +25,15 @@ export default function RobotControlsLibrary() {
       </div>
 
       <p>
-        LemLib is an open-source motion-control library for VEX V5 robots. I started this project as a
-        rewrite of it with two goals: use less memory, and make it straightforward to integrate
-        third-party sensors alongside the stock hardware. Along the way I added two features of my
-        own: automatic tuning of PID constants, and automatic tracking wheel offsets.
+        My team has previously used LemLib, a public motion-control library for VEX V5 robots developed
+        by other teams. It served us well, but it’s no longer being actively updated, it can feel
+        sluggish at times when writing autonomous routes, and since it’s built to cover everyone’s
+        robots, it carries more than we need. This year I’m developing our own library to replace it,
+        kept lightweight for our purposes. It has two main goals: apply what I’ve learned in my classes
+        to improve the robot’s performance overall, and make the library extensible so it can grow with
+        our future needs, such as integrating third-party sensors alongside the stock hardware. Along
+        the way I added two features of my own: automatic tuning of PID constants, and automatic
+        tracking wheel offsets.
       </p>
 
       <Figure folder={FOLDER} file="1-overview.webp" caption="The robot running the library" />
@@ -36,8 +41,9 @@ export default function RobotControlsLibrary() {
       <h2>Memory efficiency</h2>
       <p>
         {/* TODO: what used the most memory in LemLib, and what changed in the rewrite. */}
-        In the rewrite I reworked how the library stores and manages its state to cut its memory
-        footprint, leaving more room for the rest of the robot’s code.
+        Since the library only has to serve our robots, I kept it to what we actually use and designed
+        how it stores and manages its state to keep its memory footprint small, leaving more room for
+        the rest of the robot’s code.
       </p>
 
       <h2>Third-party sensors</h2>

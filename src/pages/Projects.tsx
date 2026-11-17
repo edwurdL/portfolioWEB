@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Project, ProjectCategory, ProjectStatus } from '../types'
+import type { ProjectCategory, ProjectEntry, ProjectStatus } from '../types'
 import { photosFor } from '../lib/projectPhotos'
 import { postForProject } from '../posts'
+import { courseAnchor, PRIVATE_CODE_NOTE } from './Coursework'
 
 export const STATUS_STYLE: Record<ProjectStatus, string> = {
   'completed':   'bg-green-50  dark:bg-green-900/20 text-green-700  dark:text-green-400',
@@ -38,14 +39,14 @@ function savedFilter(): Filter {
   }
 }
 
-export const PROJECTS: Required<Project>[] = [
+export const PROJECTS: ProjectEntry[] = [
   {
     id: '10',
     title: 'Robot Controls Library',
     category: 'robotics',
     date: 'Oct 2026',
-    shortDesc: 'A robot motion-control library based on LemLib, rewritten for lower memory use and third-party sensor support, with PID auto-tuning and automatic tracking wheel offsets.',
-    fullDesc: 'A robot motion-control library based on LemLib, rewritten from the ground up to be more memory efficient and to support integrating third-party sensors alongside the stock hardware. Beyond the rewrite, it adds automatic tuning of PID constants, so controllers can be dialed in from measured robot behavior instead of hand-tuned by trial and error, and automatic tracking wheel offset calibration, so odometry no longer depends on manually measuring where each tracking wheel sits on the chassis.',
+    shortDesc: 'Our team’s own lightweight motion-control library, replacing the public library we’d relied on. It applies what I’ve learned in classes to improve overall performance and is built to be extensible for our needs, with PID auto-tuning and automatic tracking wheel offsets.',
+    fullDesc: 'My team has previously relied on LemLib, a public motion-control library developed by other teams, but it’s no longer being actively updated and can feel sluggish at times when writing autonomous routes. This year I’m developing our own library to replace it, kept lightweight for our purposes. Its main goals are to apply what I’ve learned in my classes to improve the robot’s performance overall, and to be extensible so it can grow with our future needs, such as integrating third-party sensors alongside the stock hardware. On top of that, it adds automatic tuning of PID constants, so controllers can be dialed in from measured robot behavior instead of hand-tuned by trial and error, and automatic tracking wheel offset calibration, so odometry no longer depends on manually measuring where each tracking wheel sits on the chassis.',
     tags: ['C++', 'Robotics', 'PID', 'Odometry', 'Embedded'],
     status: 'in-progress',
     repoUrl: '',
@@ -107,56 +108,20 @@ export const PROJECTS: Required<Project>[] = [
     images: photosFor('vex-robot-structures'),
   },
   {
-    id: '5',
-    title: 'Operating System File System',
+    // EECS 482 assignments, grouped into one card that links to the course on
+    // the Coursework page rather than four cards with no write-ups.
+    id: '482',
+    title: 'Operating Systems Projects (EECS 482)',
     category: 'software',
-    date: 'Apr 2026',
-    shortDesc: 'A UNIX-style filesystem in C++ with inodes, directory entries, and crash-consistent, atomic block allocation.',
-    fullDesc: 'Built a UNIX-style filesystem in C++, implementing inodes, directory entries, and block allocation with lazy deletion to mirror real-world filesystem behavior. Engineered crash-consistent storage by leveraging atomic multi-step filesystem operations, ensuring metadata and data integrity are preserved across unexpected system failures with zero data corruption. Hardened reliability with input reconstruction-based validation — parsing and rebuilding user input to enforce strict correctness guarantees and eliminate malformed or malicious operation requests.',
-    tags: ['C++', 'Operating Systems', 'Multithreading', 'Boost'],
+    date: 'Jan–Apr 2026',
+    shortDesc: 'Four EECS 482 projects in C++: a multithreaded pizza delivery program, a thread library, a virtual memory pager, and a multithreaded network file server.',
+    fullDesc: '',
+    tags: ['C++', 'Operating Systems', 'Concurrency', 'Virtual Memory', 'File Systems', 'Networking'],
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
-    images: photosFor('os-file-system'),
-  },
-  {
-    id: '6',
-    title: 'Virtual Memory Pager',
-    category: 'software',
-    date: 'Mar 2026',
-    shortDesc: 'A demand-paging virtual memory pager for RAM using the clock eviction algorithm with deferred eviction and overwriting.',
-    fullDesc: 'Built a demand-paging virtual memory pager managing physical RAM. Implemented the clock (second-chance) algorithm for page eviction, along with deferred eviction and deferred overwriting to avoid unnecessary disk writes and page copies until a page is actually modified. Handled page faults, resident and swap-backed state tracking, and reference/dirty bit management to preserve correctness under memory pressure.',
-    tags: ['C++', 'Operating Systems', 'Virtual Memory', 'Paging'],
-    status: 'completed',
-    repoUrl: '',
-    liveUrl: '',
-    images: photosFor('virtual-memory-pager'),
-  },
-  {
-    id: '7',
-    title: 'CPU Scheduler',
-    category: 'software',
-    date: 'Feb 2026',
-    shortDesc: 'A CPU scheduler handling interrupts, context switching, and mutex-based synchronization under preemption.',
-    fullDesc: 'Implemented a CPU scheduler that drives process execution through interrupt handling, context switching between threads, and mutex-based synchronization. Coordinated safe access to shared kernel state and enforced correct scheduling semantics under preemption, avoiding race conditions across concurrent context swaps.',
-    tags: ['C++', 'Operating Systems', 'Concurrency', 'Scheduling'],
-    status: 'completed',
-    repoUrl: '',
-    liveUrl: '',
-    images: photosFor('cpu-scheduler'),
-  },
-  {
-    id: '8',
-    title: 'Multithreaded Pizza Delivery Matching',
-    category: 'software',
-    date: 'Feb 2026',
-    shortDesc: 'A multithreaded order-to-driver matching simulation coordinating concurrent assignment with basic locks.',
-    fullDesc: 'Built a multithreaded pizza delivery matching system that pairs incoming orders with available drivers concurrently. Used basic locks and condition variables to coordinate shared state between producer and consumer threads, preventing race conditions and deadlock while sustaining throughput under concurrent load.',
-    tags: ['C++', 'Multithreading', 'Concurrency', 'Locks'],
-    status: 'completed',
-    repoUrl: '',
-    liveUrl: '',
-    images: photosFor('pizza-delivery-matching'),
+    images: [],
+    course: 'EECS 482',
   },
   {
     id: '12',
@@ -178,9 +143,9 @@ export const PROJECTS: Required<Project>[] = [
     title: 'LEAP Hand Reinforcement Learning',
     category: 'robotics',
     date: 'Jun–Jul 2024',
-    shortDesc: 'A summer project to learn Linux by recreating the LEAP Hand reinforcement learning setup, debugging the wiring and code until training and testing ran on the real hand.',
-    fullDesc: 'A project after freshman year focused on learning Linux and getting a real robotics setup running. Recreated the research setup for the LEAP Hand, a low-cost anthropomorphic robot hand from Carnegie Mellon, so it ran correctly: setting up virtual environments, resolving compatibility issues, moving from a virtual machine to a dual-boot Linux PC when training needed a GPU, and debugging both the wiring and the Python code. Then ran the reinforcement learning training and tested the result on the hand.',
-    tags: ['Linux', 'Python', 'Reinforcement Learning', 'Robotics'],
+    shortDesc: 'A summer project to learn Linux by recreating the LEAP Hand reinforcement learning setup on ROS 2, debugging the wiring and code until training and testing ran on the real hand.',
+    fullDesc: 'A project after freshman year focused on learning Linux and getting a real robotics setup running. Recreated the research setup for the LEAP Hand, a low-cost anthropomorphic robot hand from Carnegie Mellon, so it ran correctly: working in ROS 2, setting up virtual environments, resolving compatibility issues, moving from a virtual machine to a dual-boot Linux PC when training needed a GPU, and debugging both the wiring and the Python code. Then ran the reinforcement learning training and tested the result on the hand.',
+    tags: ['Linux', 'ROS 2', 'Python', 'Reinforcement Learning', 'Robotics'],
     status: 'completed',
     repoUrl: '',
     liveUrl: '',
@@ -205,7 +170,7 @@ export const PROJECTS: Required<Project>[] = [
 export default function Projects() {
   const [filter, setFilter] = useState<Filter>(savedFilter)
   const projects = filter === 'all' ? PROJECTS : PROJECTS.filter(p => p.category === filter)
-  const [selected, setSelected] = useState<Required<Project> | null>(null)
+  const [selected, setSelected] = useState<ProjectEntry | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [shotRatios, setShotRatios] = useState<Record<string, string>>({})
   const [zoomed, setZoomed] = useState<string | null>(null)
@@ -243,7 +208,7 @@ export default function Projects() {
   // Group consecutive projects by year so the timeline can show a year header
   // (like the Coursework page). Projects are already newest-first, ordered by
   // when they ended, so a range like "Dec 2024 – Aug 2025" files under 2025.
-  const groups: { year: string; items: Required<Project>[] }[] = []
+  const groups: { year: string; items: ProjectEntry[] }[] = []
   for (const p of projects) {
     const year = p.date.match(/\d{4}/g)?.at(-1) ?? '—'
     const last = groups[groups.length - 1]
@@ -290,17 +255,27 @@ export default function Projects() {
               </div>
 
               {items.map(p => {
-                // Projects with a post open their own page; the rest open the modal.
+                // Projects with a post open their own page, coursework links to its
+                // course, and the rest open the modal.
                 const post = postForProject(p.id)
+                const courseLink = p.course && `/coursework#${courseAnchor(p.course)}`
                 const cardClass = 'group block rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-md transition-all'
                 const cardBody = (
                   <>
-                    <div className="flex items-start justify-between gap-4 mb-2">
+                    {/* On a phone the badge and date drop below the title so neither
+                        squeezes it; from sm up they share its row. */}
+                    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 mb-2">
                       <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{p.title}</h3>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
-                          {STATUS_LABEL[p.status] ?? p.status}
-                        </span>
+                        {p.course ? (
+                          <span className="text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                            Coursework
+                          </span>
+                        ) : (
+                          <span className={`text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
+                            {STATUS_LABEL[p.status] ?? p.status}
+                          </span>
+                        )}
                         <span className="text-xs text-zinc-400 dark:text-zinc-600 whitespace-nowrap">{p.date}</span>
                       </div>
                     </div>
@@ -315,11 +290,15 @@ export default function Projects() {
                       ))}
                     </div>
 
-                    {post && (
+                    {(post || courseLink) && (
                       <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
-                        Read the write-up{' '}
+                        {post ? 'Read the write-up' : `See ${p.course} on the Coursework page`}{' '}
                         <span className="inline-block group-hover:translate-x-0.5 transition-transform">→</span>
                       </p>
+                    )}
+                    {/* Says outright that the missing repo link is on purpose. */}
+                    {p.course && (
+                      <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">{PRIVATE_CODE_NOTE}</p>
                     )}
                   </>
                 )
@@ -332,6 +311,8 @@ export default function Projects() {
                     {/* Card */}
                     {post ? (
                       <Link to={`/projects/${post.slug}`} className={cardClass}>{cardBody}</Link>
+                    ) : courseLink ? (
+                      <Link to={courseLink} className={cardClass}>{cardBody}</Link>
                     ) : (
                       <div onClick={() => setSelected(p)} className={cardClass}>{cardBody}</div>
                     )}

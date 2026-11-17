@@ -65,6 +65,28 @@ export async function fetchPhotos(params: PhotoQuery = {}): Promise<Photo[]> {
   return data.map(mapPhoto)
 }
 
+// One fetch of the photo list per visit, shared by Home's preview card and the
+// Photos page: whichever asks first starts it, and arriving on Photos from Home
+// finds the list already in hand instead of showing skeletons again.
+let photoList: Promise<Photo[]> | undefined
+let photoListResult: Photo[] | undefined
+
+export function loadPhotos(): Promise<Photo[]> {
+  photoList ??= fetchPhotos().then(
+    list => (photoListResult = list),
+    err => {
+      photoList = undefined // let the next caller retry
+      throw err
+    }
+  )
+  return photoList
+}
+
+/** The photo list if it has already arrived, without waiting. */
+export function loadedPhotos(): Photo[] | undefined {
+  return photoListResult
+}
+
 export function fetchProjects(limit = 5, offset = 0): Promise<Project[]> {
   return fetchJSON<Project[]>(`/api/projects?limit=${limit}&offset=${offset}`);
 }

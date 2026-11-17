@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "deploy": "npm run build"
+    "deploy": "npm run build",
+    "diagrams": "node scripts/export-diagrams.mjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
-    "gh-pages": "^6.3.0",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
     "vite": "^8.3.8"

@@ -6,6 +6,7 @@ import Esp32SensorCoprocessor from './Esp32SensorCoprocessor'
 import VexRobotStructures from './VexRobotStructures'
 import LeapHandRl from './LeapHandRl'
 import CustomOmniWheels from './CustomOmniWheels'
+import PortfolioWebsite from './PortfolioWebsite'
 
 /**
  * Projects that open as their own page at /projects/<slug> instead of the
@@ -21,6 +22,7 @@ export interface Post {
 
 export const POSTS: Post[] = [
   { slug: 'robot-controls-library',   projectId: '10', Body: RobotControlsLibrary },
+  { slug: 'portfolio-website',        projectId: '1',  Body: PortfolioWebsite },
   { slug: 'medical-census-dashboard', projectId: '2',  Body: MedicalCensusDashboard },
   { slug: 'esp32-sensor-coprocessor', projectId: '3',  Body: Esp32SensorCoprocessor },
   { slug: 'vex-robot-structures',     projectId: '4',  Body: VexRobotStructures },

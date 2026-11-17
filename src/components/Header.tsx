@@ -3,8 +3,9 @@ import ThemeToggle from './ThemeToggle'
 
 const LINKS = [
   { to: '/projects', label: 'Projects' },
-  { to: '/photos', label: 'Photos' },
   { to: '/coursework', label: 'Coursework' },
+  // Last on purpose: a bit of personality, not the main event.
+  { to: '/photos', label: 'Photos' },
 ]
 
 export default function Header() {
@@ -33,12 +34,14 @@ export default function Header() {
           Home
         </Link>
 
-        <nav className="-mr-2 flex items-center gap-1 sm:gap-2">
+        {/* Below 360px (the smallest phones) the links pull in tighter so the
+            row still fits without scrolling the page sideways. */}
+        <nav className="-mr-2 flex items-center gap-1 max-[359px]:gap-0 sm:gap-2">
           {LINKS.map(({ to, label }) => (
             <Link
               key={to}
               to={to}
-              className={`px-2.5 py-1.5 rounded-lg text-sm transition-colors ${
+              className={`px-2.5 max-[359px]:px-1.5 py-1.5 rounded-lg text-sm transition-colors ${
                 pathname === to || pathname.startsWith(`${to}/`)
                   ? 'text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800'
                   : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'

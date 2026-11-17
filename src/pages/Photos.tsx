@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { fetchPhotos } from '../lib/api'
+import { loadPhotos, loadedPhotos } from '../lib/api'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
 import deadfile from '../assets/deadfile.webp'
@@ -73,12 +73,17 @@ function colorDistance(a: string, b: string): number {
 
 const SKELETON_RATIOS = ['3/4', '1/1', '4/5', '2/3', '16/9', '3/4', '1/1', '4/5']
 
+/** Tiles near the top that load right away instead of waiting their turn. */
+const EAGER_TILES = 8
+
+const toGallery = (list: Photo[]): Required<Photo>[] => (list.length ? list.map(createPhoto) : MOCK)
+
 function colsFor(w: number) {
   return w >= 1024 ? 4 : w >= 768 ? 3 : 2
 }
 
 function useColumnCount() {
-  const [cols, setCols] = useState(() => colsFor(window.innerWidth))
+  const [cols, setCols] = useState(() => (typeof window === 'undefined' ? 2 : colsFor(window.innerWidth)))
   useEffect(() => {
     const on = () => setCols(colsFor(window.innerWidth))
     window.addEventListener('resize', on, { passive: true })
@@ -88,8 +93,13 @@ function useColumnCount() {
 }
 
 export default function Photos() {
-  const [photos, setPhotos] = useState<Required<Photo>[]>([])
-  const [loading, setLoading] = useState(true)
+  // Coming from Home, the list is usually already here, so there's nothing to wait for.
+  const [photos, setPhotos] = useState<Required<Photo>[]>(() => {
+    const ready = loadedPhotos()
+    return ready ? toGallery(ready) : []
+  })
+  const [loading, setLoading] = useState(() => !loadedPhotos())
+  const [loaded, setLoaded] = useState<Record<string, true>>({})
   const [category, setCategory] = useState('All')
   const [colorFilter, setColorFilter] = useState<string | null>(null)
   const [newestFirst, setNewestFirst] = useState(true)
@@ -103,11 +113,12 @@ export default function Photos() {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Fetch once and cache in state (API is rate-limited). On failure — e.g.
-    // CORS block during localhost dev — fall back to the mock set so the page
-    // still renders something. Skeletons show until this resolves.
-    fetchPhotos()
-      .then(data => setPhotos(data.length ? data.map(createPhoto) : MOCK))
+    // Fetched once per visit and shared with Home (API is rate-limited). On
+    // failure — e.g. CORS block during localhost dev — fall back to the mock set
+    // so the page still renders something. Skeletons show until this resolves.
+    if (!loading) return
+    loadPhotos()
+      .then(data => setPhotos(toGallery(data)))
       .catch(() => setPhotos(MOCK))
       .finally(() => setLoading(false))
   }, [])
@@ -151,8 +162,9 @@ export default function Photos() {
   // Distribute into fixed columns round-robin. Unlike CSS multicol, each column
   // is an independent stack, so a tile changing height only shifts the tiles
   // below it in its own column — tiles never rebalance across columns.
-  const buckets: Required<Photo>[][] = Array.from({ length: columns }, () => [])
-  filtered.forEach((p, i) => buckets[i % columns].push(p))
+  // Remember each photo's position too: the first few load eagerly.
+  const buckets: { photo: Required<Photo>; rank: number }[][] = Array.from({ length: columns }, () => [])
+  filtered.forEach((photo, rank) => buckets[rank % columns].push({ photo, rank }))
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
@@ -267,7 +279,7 @@ export default function Photos() {
         <div className="flex gap-4">
           {buckets.map((col, ci) => (
             <div key={ci} className="flex-1 flex flex-col gap-4 min-w-0">
-              {col.map(photo => (
+              {col.map(({ photo, rank }) => (
                 <div
                   key={photo.id}
                   className="cursor-pointer"
@@ -279,14 +291,19 @@ export default function Photos() {
                     className={`w-full rounded-xl overflow-hidden border transition-all ${hovered === photo.id ? 'border-zinc-400 dark:border-zinc-500 shadow-md' : 'border-zinc-100 dark:border-zinc-800'} relative`}
                     style={{ aspectRatio: ratios[photo.id] ?? photo.ratio, backgroundColor: photo.prominentColor }}
                   >
+                    {/* Until it arrives the tile shows the photo's own prominent
+                        colour; the image then fades in over it. */}
                     <img
                       src={photo.url}
                       alt={photo.meta.descriptor}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
+                      loading={rank < EAGER_TILES ? 'eager' : 'lazy'}
+                      fetchPriority={rank < EAGER_TILES ? 'high' : 'auto'}
+                      decoding="async"
+                      className={`w-full h-full object-cover transition-opacity duration-500 ${loaded[photo.id] ? 'opacity-100' : 'opacity-0'}`}
                       onLoad={e => {
                         const { naturalWidth: w, naturalHeight: h } = e.currentTarget
                         if (w && h) setRatios(r => (r[photo.id] ? r : { ...r, [photo.id]: `${w}/${h}` }))
+                        setLoaded(l => (l[photo.id] ? l : { ...l, [photo.id]: true }))
                       }}
                     />
                     <div className="absolute top-2 right-2 w-3 h-3 rounded-full border border-white/50 shadow" style={{ backgroundColor: photo.prominentColor }} />

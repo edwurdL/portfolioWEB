@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" class="uml" width="830" height="500" viewBox="0 0 830 500" role="img" aria-labelledby="deploy-title deploy-desc"><title id="deploy-title">How this website is deployed</title><desc id="deploy-desc">Pushes to the portfolio-web repository on GitHub trigger Cloudflare Pages, which builds the site and serves it as eddie-lai.com. A visitor’s browser loads pages from Cloudflare Pages, and sends API and photo requests to api.eddie-lai.com, which Cloudflare’s proxy forwards through a Cloudflare Tunnel to cloudflared on the Mac mini and on to the Express API. Express reads photo metadata from PostgreSQL through Prisma, serves processed WebP files, and asks Cloudflare’s analytics API for the last 24 hours of traffic.</desc><style>/* UML diagrams in project posts (src/posts/diagrams.tsx). Colours are set here
+   once, for both themes, so the SVG markup only names roles. */
+.uml {
+  --uml-ink: #27272a;
+  --uml-muted: #71717a;
+  --uml-line: #a1a1aa;
+  --uml-node: #f4f4f5;
+  --uml-node-side: #e4e4e7;
+  --uml-part: #ffffff;
+  --uml-accent: #0f766e;
+  --uml-bg: #ffffff;
+  font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.uml text { fill: var(--uml-ink); font-size: 12px; }
+.uml .name { font-weight: 500; }
+.uml .label { font-size: 11.5px; }
+.uml .muted { fill: var(--uml-muted); font-size: 10.5px; }
+.uml .stereo { fill: var(--uml-muted); font-size: 10.5px; font-style: italic; }
+.uml .accent-text { fill: var(--uml-accent); }
+.uml .halo { paint-order: stroke; stroke: var(--uml-bg); stroke-width: 4px; stroke-linejoin: round; }
+.uml .node { fill: var(--uml-node); stroke: var(--uml-line); }
+.uml .node-side { fill: var(--uml-node-side); stroke: var(--uml-line); stroke-linejoin: round; }
+.uml .part { fill: var(--uml-part); stroke: var(--uml-line); }
+.uml .edge { fill: none; stroke: var(--uml-line); stroke-width: 1.3; }
+.uml .edge.accent { stroke: var(--uml-accent); stroke-width: 1.8; }
+.uml .edge.dashed { stroke-dasharray: 5 4; }
+.uml .lifeline { stroke: var(--uml-line); stroke-dasharray: 4 4; }
+.uml .activation { fill: var(--uml-node); stroke: var(--uml-line); }
+.uml .frame { fill: none; stroke: var(--uml-line); stroke-dasharray: 6 4; }
+.uml .frame-tag { fill: var(--uml-node); stroke: var(--uml-line); }
+.uml .divider { stroke: var(--uml-line); stroke-dasharray: 6 4; }
+.uml .head { fill: var(--uml-line); }
+.uml .head-accent { fill: var(--uml-accent); }
+.uml .head-open { fill: none; stroke: var(--uml-line); stroke-width: 1.3; }
+.uml .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.uml .lane { fill: none; stroke: var(--uml-line); }
+.uml .start { fill: var(--uml-ink); }
+.uml .end-ring { fill: none; stroke: var(--uml-ink); stroke-width: 1.5; }
+.uml .diamond { fill: var(--uml-ink); }
+
+@media (prefers-color-scheme: dark) {
+  .uml {
+  --uml-ink: #e4e4e7;
+  --uml-muted: #a1a1aa;
+  --uml-line: #71717a;
+  --uml-node: #27272a;
+  --uml-node-side: #3f3f46;
+  --uml-part: #18181b;
+  --uml-accent: #2dd4bf;
+  --uml-bg: #18181b;
+}
+}
+.uml .bg { fill: var(--uml-bg); }
+</style><rect class="bg" width="100%" height="100%"/><defs><marker id="dep-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="head"></path></marker><marker id="dep-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="head-accent"></path></marker><marker id="dep-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10" class="head-open"></path></marker></defs><g><path class="node-side" d="M20 50 L28 42 H228 V182 L220 190 V50 Z"></path><rect class="node" x="20" y="50" width="200" height="140"></rect><text class="stereo" x="32" y="68">«service»</text><text class="name" x="32" y="85">GitHub</text></g><g><rect class="part" x="36" y="106" width="168" height="66" rx="3"></rect><text class="stereo" x="46" y="121">«artifact»</text><text class="name" x="46" y="137">portfolio-web</text><text class="muted" x="46" y="152">source repository</text></g><g><path class="node-side" d="M20 260 L28 252 H228 V402 L220 410 V260 Z"></path><rect class="node" x="20" y="260" width="200" height="150"></rect><text class="stereo" x="32" y="278">«device»</text><text class="name" x="32" y="295">Visitor’s browser</text></g><g><rect class="part" x="36" y="316" width="168" height="78" rx="3"></rect><text class="stereo" x="46" y="331">«artifact»</text><text class="name" x="46" y="347">React app</text><text class="muted" x="46" y="362">prerendered HTML pages</text><text class="muted" x="46" y="376">+ JS bundle</text></g><g><path class="node-side" d="M300 50 L308 42 H518 V482 L510 490 V50 Z"></path><rect class="node" x="300" y="50" width="210" height="440"></rect><text class="stereo" x="312" y="68">«cloud»</text><text class="name" x="312" y="85">Cloudflare</text></g><g><rect class="part" x="316" y="96" width="178" height="70" rx="3"></rect><text class="stereo" x="326" y="111">«component»</text><text class="name" x="326" y="127">Pages</text><text class="muted" x="326" y="142">builds + hosts the site</text><text class="muted" x="326" y="156">eddie-lai.com</text></g><g><rect class="part" x="316" y="182" width="178" height="64" rx="3"></rect><text class="stereo" x="326" y="197">«component»</text><text class="name" x="326" y="213">Proxy + cache</text><text class="muted" x="326" y="228">api.eddie-lai.com</text></g><g><rect class="part" x="316" y="262" width="178" height="40" rx="3"></rect><text class="name" x="326" y="282">Tunnel</text><text class="muted" x="326" y="297">api.* · ssh.* (Access)</text></g><g><rect class="part" x="316" y="318" width="178" height="58" rx="3"></rect><text class="stereo" x="326" y="333">«service»</text><text class="name" x="326" y="349">Analytics API</text><text class="muted" x="326" y="364">last-24h traffic</text></g><g><path class="node-side" d="M590 50 L598 42 H818 V482 L810 490 V50 Z"></path><rect class="node" x="590" y="50" width="220" height="440"></rect><text class="stereo" x="602" y="68">«device»</text><text class="name" x="602" y="85">Mac mini</text></g><g><rect class="part" x="606" y="96" width="188" height="80" rx="3"></rect><text class="stereo" x="616" y="111">«component»</text><text class="name" x="616" y="127">Photo pipeline</text><text class="muted" x="616" y="142">chokidar watcher + queue</text><text class="muted" x="616" y="156">sharp · exifr · Ollama</text></g><g><rect class="part" x="606" y="262" width="188" height="40" rx="3"></rect><text class="name" x="616" y="286">cloudflared</text></g><g><rect class="part" x="606" y="318" width="188" height="92" rx="3"></rect><text class="stereo" x="616" y="333">«component» run by pm2</text><text class="name" x="616" y="349">Express API</text><text class="muted" x="616" y="364">/api/photos · /api/projects</text><text class="muted" x="616" y="378">/api/analytics · /health</text><text class="muted" x="616" y="392">/photos/processed/*.webp</text></g><g><rect class="part" x="606" y="426" width="90" height="48" rx="3"></rect><text class="name" x="616" y="446">PostgreSQL</text><text class="muted" x="616" y="461">via Prisma</text></g><g><rect class="part" x="704" y="426" width="90" height="48" rx="3"></rect><text class="name" x="714" y="446">processed/</text><text class="muted" x="714" y="461">WebP files</text></g><path class="edge" d="M204 136 H316" marker-end="url(#dep-arrow)"></path><text class="label halo" x="260" y="128" text-anchor="middle">push → build</text><path class="edge" d="M204 334 H262 V150 H316" marker-end="url(#dep-arrow)"></path><text class="muted halo" x="254" y="250" text-anchor="middle" transform="rotate(-90 254 250)">pages</text><path class="edge" d="M204 372 H280 V214 H316" marker-end="url(#dep-arrow)"></path><text class="muted halo" x="291" y="300" text-anchor="middle" transform="rotate(-90 291 300)">API · WebP</text><path class="edge" d="M405 246 V262" marker-end="url(#dep-arrow)"></path><path class="edge accent" d="M494 282 H606" marker-end="url(#dep-accent)"></path><text class="label accent-text" x="550" y="274" text-anchor="middle">tunnel</text><text class="muted" x="550" y="298" text-anchor="middle">no open ports</text><path class="edge" d="M700 302 V318" marker-end="url(#dep-arrow)"></path><text class="muted" x="708" y="314">localhost</text><path class="edge" d="M606 347 H494" marker-end="url(#dep-arrow)"></path><text class="muted" x="550" y="339" text-anchor="middle">stats request</text><path class="edge" d="M651 410 V426" marker-end="url(#dep-arrow)"></path><path class="edge" d="M749 410 V426" marker-end="url(#dep-arrow)"></path></svg>

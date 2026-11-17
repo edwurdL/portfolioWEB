@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import profileImg from '../assets/headshot.webp'
-import { fetchAnalytics, fetchPhotos } from '../lib/api'
+import { loadPhotos } from '../lib/api'
 import { createPhoto } from '../types'
-import type { Photo, SiteAnalytics } from '../types'
+import type { Photo } from '../types'
 import { PROJECTS, STATUS_LABEL } from './Projects'
+import { POSTS, postBySlug } from '../posts'
 import { TERMS } from './Coursework'
 import { MOCK as MOCK_PHOTOS } from './Photos'
 // Bio text lives in /aboutme.txt at the project root — edit that file and
@@ -14,8 +15,9 @@ import bioText from '../../aboutme.txt?raw'
 
 const BIO_PARAGRAPHS = bioText.trim().split(/\n\s*\n/)
 
+const EMAIL = 'edlai@umich.edu'
+
 const CONTACTS = [
-  { label: 'Gmail', href: 'mailto:edlai@umich.edu' },
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/edwurdl/' },
   { label: 'GitHub', href: 'https://github.com/edwurdL' },
 ]
@@ -23,9 +25,50 @@ const CONTACTS = [
 /** One rotation of a section card: an eyebrow and the body underneath it. */
 type Preview = { key: string; eyebrow: string; content: ReactNode }
 
-// Both lists are already newest-first on their own pages, so the cards cycle
-// in that order.
-const PROJECT_PREVIEWS: Preview[] = PROJECTS.map(p => ({
+/**
+ * The projects the home page leads with, in the order shown, each with the
+ * result worth remembering. Date (and the title, unless `title` overrides it
+ * here) come from the project's entry in pages/Projects.tsx; each must have a
+ * write-up in posts/index.ts.
+ */
+type Feature = {
+  slug: string
+  title?: string
+  highlight: string
+  detail: string
+  /** Draws the card in teal so it stands out from the rest. */
+  accent?: boolean
+}
+
+const FEATURED = ([
+  {
+    slug: 'portfolio-website',
+    // Shown here in place of the project's name on the Projects page.
+    title: 'How This Website Works',
+    accent: true,
+    highlight: 'A self-hosted API serving 600+ photos',
+    detail: 'This site: React, Tailwind and Vite, prerendered for link previews, backed by my own REST server behind Cloudflare.',
+  },
+  {
+    slug: 'robot-controls-library',
+    highlight: 'Autotuned PID cut a 90° turn from 1.8 s to 0.68 s',
+    detail: 'My team’s own motion-control library. Its autotune measures the drivetrain, computes the gains, then tests them on the robot: kP climbed from 0.44 to 0.91 before a turn overshot.',
+  },
+  {
+    slug: 'medical-census-dashboard',
+    highlight: '400,000+ census data points in one dashboard',
+    detail: 'A Tableau dashboard for trends across demographics and geography, fed by an ETL pipeline I’m building that adds stay IDs and readmission flags.',
+  },
+] as Feature[]).map(f => {
+  const post = postBySlug(f.slug)
+  const project = post && PROJECTS.find(p => p.id === post.projectId)
+  if (!project) throw new Error(`Featured project "${f.slug}" has no write-up or project entry`)
+  return { ...f, title: f.title ?? project.title, project }
+})
+
+// Only projects with a write-up rotate through the Explore card, so whatever it
+// shows has a page behind it. Already newest-first, as on the Projects page.
+const PROJECT_PREVIEWS: Preview[] = PROJECTS.filter(p => POSTS.some(post => post.projectId === p.id)).map(p => ({
   key: p.id,
   eyebrow: STATUS_LABEL[p.status] ?? p.status,
   content: (
@@ -46,7 +89,7 @@ const PROJECT_PREVIEWS: Preview[] = PROJECTS.map(p => ({
 const COURSE_PREVIEWS: Preview[] = TERMS.flatMap(t =>
   t.courses.map(c => ({
     key: c.code,
-    eyebrow: `${t.term}${t.planned ? ' · Upcoming' : ''}`,
+    eyebrow: `${t.term}${t.current ? ' · In progress' : ''}`,
     content: (
       <>
         <div className="flex items-baseline gap-2.5 mb-1">
@@ -129,8 +172,8 @@ const PHOTO_PLACEHOLDER: Preview = {
 const PAGE_SECTIONS = [
   { id: 'about', label: 'About' },
   { id: 'contacts', label: 'Contacts' },
+  { id: 'featured', label: 'Featured' },
   { id: 'explore', label: 'Explore' },
-  { id: 'analytics', label: 'Analytics' },
 ]
 
 const LAST_SECTION = PAGE_SECTIONS[PAGE_SECTIONS.length - 1].id
@@ -225,26 +268,19 @@ function PageNav() {
 }
 
 export default function Home() {
-  const [stats, setStats] = useState<SiteAnalytics | null>(null)
   const [photoPreviews, setPhotoPreviews] = useState<Preview[]>([PHOTO_PLACEHOLDER])
   const [projectPreviews] = useState(() => shuffled(PROJECT_PREVIEWS))
   const [coursePreviews] = useState(() => shuffled(COURSE_PREVIEWS))
-
-  useEffect(() => {
-    fetchAnalytics().then(setStats).catch(() => {})
-  }, [])
 
   useEffect(() => {
     // Same fallback as the Photos page: if the API is unreachable (e.g. CORS
     // during localhost dev), preview the mock set instead of an empty slot.
     const toPreviews = (list: Required<Photo>[]) =>
       shuffled(list).slice(0, PHOTO_PREVIEW_COUNT).map(photoPreview)
-    fetchPhotos()
+    loadPhotos()
       .then(data => setPhotoPreviews(toPreviews(data.length ? data.map(createPhoto) : MOCK_PHOTOS)))
       .catch(() => setPhotoPreviews(toPreviews(MOCK_PHOTOS)))
   }, [])
-
-  const fmt = (n?: number) => (n === undefined ? '—' : n.toLocaleString())
 
   return (
     <>
@@ -279,7 +315,10 @@ export default function Home() {
         <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
           Contacts
         </h2>
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
+        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+          {/* Plain text rather than a mailto link, so it can be copied by anyone
+              without a mail app set up. */}
+          <span className="text-sm text-zinc-500 dark:text-zinc-400 select-all">{EMAIL}</span>
           {CONTACTS.map(({ label, href }) => (
             <a
               key={label}
@@ -290,6 +329,48 @@ export default function Home() {
             >
               {label}
             </a>
+          ))}
+        </div>
+      </section>
+
+      <section id="featured" className="scroll-mt-20 mb-14">
+        <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
+          Featured projects
+        </h2>
+        <div className="flex flex-col gap-3">
+          {FEATURED.map(({ slug, title, highlight, detail, accent, project }) => (
+            <Link
+              key={slug}
+              to={`/projects/${slug}`}
+              // The accent card is teal, the same colour as this project's
+              // "deployed" status on the Projects page.
+              className={`group block rounded-xl border p-5 hover:shadow-sm transition-all ${
+                accent
+                  ? 'border-teal-300 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 hover:border-teal-500 dark:hover:border-teal-600'
+                  : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+              }`}
+            >
+              <div className="flex items-baseline justify-between gap-3 mb-2">
+                <p className={`text-sm font-medium ${accent ? 'text-teal-800 dark:text-teal-300' : 'text-zinc-800 dark:text-zinc-200'}`}>
+                  {title}
+                </p>
+                <span className={`text-[0.65rem] whitespace-nowrap tabular-nums ${accent ? 'text-teal-600 dark:text-teal-500' : 'text-zinc-400 dark:text-zinc-600'}`}>
+                  {project.date}
+                </span>
+              </div>
+              <p className={`font-serif text-2xl leading-snug mb-2 ${accent ? 'text-teal-950 dark:text-teal-50' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                {highlight}
+              </p>
+              <p className={`text-sm leading-relaxed ${accent ? 'text-teal-900/75 dark:text-teal-100/70' : 'text-zinc-500 dark:text-zinc-400'}`}>{detail}</p>
+              <p className={`mt-3 text-xs transition-colors ${
+                accent
+                  ? 'text-teal-700 dark:text-teal-400 group-hover:text-teal-900 dark:group-hover:text-teal-200'
+                  : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
+              }`}>
+                Read the write-up{' '}
+                <span className="inline-block group-hover:translate-x-0.5 transition-transform">→</span>
+              </p>
+            </Link>
           ))}
         </div>
       </section>
@@ -308,36 +389,19 @@ export default function Home() {
             beat={0}
           />
           <SectionCard
-            to="/photos"
-            label="Photos"
-            desc="A filterable gallery served from my self-hosted photo API"
-            previews={photoPreviews}
-            beat={1}
-          />
-          <SectionCard
             to="/coursework"
             label="Coursework"
             desc="Classes I’ve taken"
             previews={coursePreviews}
+            beat={1}
+          />
+          <SectionCard
+            to="/photos"
+            label="Photos"
+            desc="A filterable gallery served from my self-hosted photo API"
+            previews={photoPreviews}
             beat={2}
           />
-        </div>
-      </section>
-
-      {/* Site analytics */}
-      <section id="analytics" className="scroll-mt-20">
-        <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
-            Site analytics
-          </h2>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            Last 24 hours · Cloudflare
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <StatTile label="Unique visitors" value={fmt(stats?.uniqueVisitors)} />
-          <StatTile label="Requests" value={fmt(stats?.totalRequests)} />
-          <StatTile label="Bandwidth" value={formatBytes(stats?.totalBytes)} />
         </div>
       </section>
 
@@ -413,30 +477,5 @@ function SectionCard({
         </div>
       )}
     </Link>
-  )
-}
-
-function formatBytes(bytes?: number): string {
-  if (bytes === undefined) return '—'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let v = bytes
-  let i = 0
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024
-    i++
-  }
-  return `${i === 0 ? v : v >= 100 ? v.toFixed(0) : v.toFixed(1)} ${units[i]}`
-}
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 px-5 py-4">
-      <p className="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 mb-1.5">
-        {label}
-      </p>
-      <p className="text-2xl font-light text-zinc-800 dark:text-zinc-200 tabular-nums">
-        {value}
-      </p>
-    </div>
   )
 }

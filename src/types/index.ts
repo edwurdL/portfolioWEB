@@ -60,9 +60,17 @@ export interface Project {
   liveUrl?: string
   /** Screenshots for the detail modal — files live in src/assets/projects/. */
   images?: string[]
+  /**
+   * Set for class assignments, e.g. 'EECS 482'. The card is then labelled as
+   * coursework and links to that course on the Coursework page.
+   */
+  course?: string
 }
 
-export function createProject(p: Partial<Project> & { id: string }): Required<Project> {
+/** A Projects page entry: every field filled in except the optional course. */
+export type ProjectEntry = Required<Omit<Project, 'course'>> & Pick<Project, 'course'>
+
+export function createProject(p: Partial<Project> & { id: string }): ProjectEntry {
   return {
     id:        p.id,
     title:     p.title     ?? 'Untitled',
@@ -75,6 +83,7 @@ export function createProject(p: Partial<Project> & { id: string }): Required<Pr
     repoUrl:   p.repoUrl   ?? '',
     liveUrl:   p.liveUrl   ?? '',
     images:    p.images    ?? [],
+    course:    p.course,
   }
 }
 

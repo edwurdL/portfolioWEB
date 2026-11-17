@@ -25,8 +25,8 @@ export default function LeapHandRl() {
       <h2>Recreating the setup</h2>
       <p>
         I didn’t design anything new here. My job was to recreate the research setup so that it ran
-        correctly, and that’s where most of the learning happened: working in Linux, setting up
-        virtual environments, and sorting out compatibility between all the pieces so everything ran
+        correctly, and that’s where most of the learning happened: working in Linux and ROS 2,
+        setting up virtual environments, and sorting out compatibility between all the pieces so everything ran
         the way it should. Getting the hand itself working took some debugging too, both in the wiring
         and in the Python file that runs it.
       </p>

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 
 export default function ThemeToggle() {
   const [dark, setDark] = useState(() => {
+    // No browser while the page is prerendered; the client re-renders anyway.
+    if (typeof window === 'undefined') return false
     const saved = localStorage.getItem('theme')
     if (saved !== null) return saved === 'dark'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -15,7 +17,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setDark(d => !d)}
-      className="ml-1 p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
+      className="ml-1 max-[359px]:ml-0 p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {dark ? <SunIcon /> : <MoonIcon />}
