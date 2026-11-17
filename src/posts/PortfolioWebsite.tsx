@@ -49,6 +49,11 @@ export default function PortfolioWebsite() {
         requests from this site. The processed images are served with a one-year cache lifetime, so
         Cloudflare can answer repeat requests for them from its cache instead of the Mac mini.
       </p>
+      <p>
+        Since the API runs on hardware at home, I also have Cloudflare watching it: if the Mac mini loses
+        its connection to Cloudflare or the server becomes unreachable, Cloudflare emails me, so I find out
+        about an outage before a visitor does.
+      </p>
 
       <SiteDeploymentDiagram />
 

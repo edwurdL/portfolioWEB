@@ -66,7 +66,7 @@ export const PROJECTS: ProjectEntry[] = [
     category: 'software',
     date: 'Oct–Nov 2026',
     shortDesc: 'A daily food-guessing game at grubbl.io: name the dish from its ingredients, with Wordle-style hints, running on one Cloudflare Worker with a D1 database and optional accounts.',
-    fullDesc: 'A daily guessing game: guess the dish from its ingredients, starting with three and revealing one more after each wrong guess, with color-coded hints comparing each guess to the answer on type, origin, diet, palate, course, method, spice and shared ingredients. One Cloudflare Worker serves the React client and the API; the day’s answer is picked on first request and stored in Cloudflare D1, alongside optional accounts (Better Auth, with emailed sign-in codes) and game history.',
+    fullDesc: 'A daily guessing game: guess the dish from its ingredients, starting with a few and revealing one more after each wrong guess, with color-coded hints comparing each guess to the answer on type, origin, diet, palate, course, method, spice and shared ingredients. One Cloudflare Worker serves the React client and the API; the day’s answer is picked on first request and stored in Cloudflare D1, alongside optional accounts (Better Auth, with emailed sign-in codes) and game history.',
     tags: ['TypeScript', 'React', 'Cloudflare Workers', 'Cloudflare D1', 'Better Auth'],
     status: 'deployed',
     repoUrl: 'https://github.com/edwurdL/grubblio',

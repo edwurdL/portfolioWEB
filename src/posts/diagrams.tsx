@@ -82,7 +82,8 @@ export function SiteDeploymentDiagram() {
           eddie-lai.com. A visitor’s browser loads pages from Cloudflare Pages, and sends API and photo requests to
           api.eddie-lai.com, which Cloudflare’s proxy forwards through a Cloudflare Tunnel to cloudflared on the Mac mini and on
           to the Express API. Express reads photo metadata from PostgreSQL through Prisma, serves processed WebP files, and asks
-          Cloudflare’s analytics API for the last 24 hours of traffic.
+          Cloudflare’s analytics API for the last 24 hours of traffic. Cloudflare notifications email me if the server
+          loses its connection to Cloudflare or becomes unreachable.
         </desc>
         <Markers id="dep" />
 
@@ -97,6 +98,9 @@ export function SiteDeploymentDiagram() {
         <Part x={316} y={182} w={178} h={64} stereo="«component»" name="Proxy + cache" lines={['api.eddie-lai.com']} />
         <Part x={316} y={262} w={178} h={40} name="Tunnel" lines={['api.* · ssh.* (Access)']} />
         <Part x={316} y={318} w={178} h={58} stereo="«service»" name="Analytics API" lines={['last-24h traffic']} />
+        <Part x={316} y={392} w={178} h={80} stereo="«service»" name="Notifications" lines={['server disconnected', 'or unreachable']} />
+
+        <Part x={36} y={426} w={168} h={46} name="My inbox" lines={['alert emails']} />
 
         <Node x={590} y={50} w={220} h={440} stereo="«device»" name="Mac mini" />
         <Part x={606} y={96} w={188} h={80} stereo="«component»" name="Photo pipeline" lines={['chokidar watcher + queue', 'sharp · exifr · Ollama']} />
@@ -127,6 +131,10 @@ export function SiteDeploymentDiagram() {
         {/* Express → Cloudflare analytics */}
         <path className="edge" d="M606 347 H494" markerEnd="url(#dep-arrow)" />
         <text className="muted" x={550} y={339} textAnchor="middle">stats request</text>
+
+        {/* Notifications → email to me */}
+        <path className="edge accent" d="M316 445 H204" markerEnd="url(#dep-accent)" />
+        <text className="muted accent-text halo" x={260} y={438} textAnchor="middle">email alert</text>
 
         {/* Express → storage */}
         <path className="edge" d="M651 410 V426" markerEnd="url(#dep-arrow)" />

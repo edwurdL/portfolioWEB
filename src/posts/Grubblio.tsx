@@ -10,9 +10,20 @@ export default function Grubblio() {
     <>
       <p>
         <a href="https://grubbl.io" target="_blank" rel="noopener noreferrer">grubbl.io</a> is a daily
-        guessing game: guess the dish from its ingredients. You start with three, and each wrong guess reveals another,
-        with nine guesses to get it. When the game ends, it shows the answer with a photo.
+        guessing game: guess the dish from its ingredients. You start with a few, and each wrong guess
+        reveals another, with a limited number of guesses to get it. When the game ends, it shows the answer
+        with a photo. The exact rules, like how many ingredients you start with and how many guesses you get,
+        are still being tuned.
       </p>
+
+      {/* Styled to match the robot post's work-in-progress note. */}
+      <div
+        role="note"
+        className="mb-8 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-800 dark:text-blue-300"
+      >
+        <span className="font-medium">Screenshots from November 17, 2026.</span> The game is still changing, so if
+        you play it after that date, it may not look or play exactly like the pictures and clips here.
+      </div>
 
       <Figure
         folder={FOLDER}

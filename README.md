@@ -24,6 +24,8 @@ renders is either compiled into the bundle or fetched at runtime from `api.eddie
 The API is an Express server on a Mac mini, reached through a Cloudflare Tunnel and fronted
 by Cloudflare for caching and traffic stats. Photo and analytics calls fail soft: the gallery
 falls back to a built-in mock set so the page still renders, and the analytics tiles show `—`.
+Cloudflare notifications email me if the Mac mini loses its connection to Cloudflare or the server
+becomes unreachable.
 
 Each photo is a row of a Prisma model in PostgreSQL; `mapPhoto()` in `src/lib/api.ts` turns
 the API's JSON into the site's own types:
