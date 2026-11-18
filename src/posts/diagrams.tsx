@@ -212,19 +212,19 @@ export function ApiDeployDiagram() {
   const GH = 95, RUN = 285, CF = 475, MAC = 665
   return (
     <DiagramFigure caption="UML activity diagram: how a push to the API repository redeploys the server on my Mac mini">
-      <svg className="uml block w-full h-auto min-w-[640px]" viewBox="0 0 760 590" role="img" aria-labelledby="apideploy-title apideploy-desc">
+      <svg className="uml block w-full h-auto min-w-[640px]" viewBox="0 0 760 604" role="img" aria-labelledby="apideploy-title apideploy-desc">
         <title id="apideploy-title">How the API is deployed</title>
         <desc id="apideploy-desc">
           A push to the main branch of the API repository starts a GitHub Actions workflow. Its runner installs cloudflared,
           sets up an SSH key, and connects to ssh.eddie-lai.com through Cloudflare Access. On the Mac mini it runs git pull,
-          pnpm install, pnpm build and pnpm migrate, then reloads the API with pm2 (or starts dist/index.js if it isn’t
+          pnpm install, pnpm generate (to rebuild the Prisma client from the schema), pnpm build and pnpm migrate, then reloads the API with pm2 (or starts dist/index.js if it isn’t
           running) and saves the pm2 process list.
         </desc>
         <Markers id="api" />
 
         {['GitHub', 'Actions runner', 'Cloudflare', 'Mac mini'].map((lane, i) => (
           <g key={lane}>
-            <rect className="lane" x={i * LANE} y={0} width={LANE} height={590} />
+            <rect className="lane" x={i * LANE} y={0} width={LANE} height={604} />
             <text className="name" x={i * LANE + LANE / 2} y={24} textAnchor="middle">{lane}</text>
           </g>
         ))}
@@ -249,15 +249,15 @@ export function ApiDeployDiagram() {
 
         <Action cx={MAC} y={278} w={170} h={50} lines={['git pull', 'pnpm install']} />
         <path className="edge" d={`M${MAC} 328 V352`} markerEnd="url(#api-arrow)" />
-        <Action cx={MAC} y={352} w={170} h={50} lines={['pnpm build', 'pnpm migrate']} />
-        <path className="edge" d={`M${MAC} 402 V426`} markerEnd="url(#api-arrow)" />
-        <Action cx={MAC} y={426} w={170} h={50} lines={['pm2 reload api', 'or start dist/index.js']} />
-        <path className="edge" d={`M${MAC} 476 V500`} markerEnd="url(#api-arrow)" />
-        <Action cx={MAC} y={500} w={170} h={40} lines={['pm2 save']} />
+        <Action cx={MAC} y={352} w={170} h={64} lines={['pnpm generate', 'pnpm build', 'pnpm migrate']} />
+        <path className="edge" d={`M${MAC} 416 V440`} markerEnd="url(#api-arrow)" />
+        <Action cx={MAC} y={440} w={170} h={50} lines={['pm2 reload api', 'or start dist/index.js']} />
+        <path className="edge" d={`M${MAC} 490 V514`} markerEnd="url(#api-arrow)" />
+        <Action cx={MAC} y={514} w={170} h={40} lines={['pm2 save']} />
 
-        <path className="edge" d={`M${MAC} 540 V556`} markerEnd="url(#api-arrow)" />
-        <circle className="end-ring" cx={MAC} cy={566} r={10} />
-        <circle className="start" cx={MAC} cy={566} r={6} />
+        <path className="edge" d={`M${MAC} 554 V570`} markerEnd="url(#api-arrow)" />
+        <circle className="end-ring" cx={MAC} cy={580} r={10} />
+        <circle className="start" cx={MAC} cy={580} r={6} />
       </svg>
     </DiagramFigure>
   )
@@ -287,13 +287,13 @@ function ClassBox({ x, y, w, stereo, name, attrs }: { x: number; y: number; w: n
 export function PhotoModelDiagram() {
   return (
     <DiagramFigure caption="UML class diagram: the Photo model in PostgreSQL, and the types the site maps it into">
-      <svg className="uml block w-full h-auto min-w-[640px]" viewBox="0 0 830 336" role="img" aria-labelledby="model-title model-desc">
+      <svg className="uml block w-full h-auto min-w-[640px]" viewBox="0 0 830 352" role="img" aria-labelledby="model-title model-desc">
         <title id="model-title">The photo data model</title>
         <desc id="model-desc">
-          On the Mac mini, Prisma’s Photo model in PostgreSQL holds an id, filename, url, description, category, tags, colors,
-          optional EXIF fields (date taken, camera, ISO, shutter, aperture, lens, focal length) and a creation time. GET
-          /api/photos returns these rows as JSON, and the site’s mapPhoto function turns each into its own Photo type, whose
-          meta field holds a PhotoMeta with the camera settings, date and description.
+          On the Mac mini, Prisma’s Photo model in PostgreSQL holds an id, filename, url, description, category, tags, colors
+          (the real colour of each of the photo’s main colour bands), an optional average colour, optional EXIF fields (date taken, camera, ISO, shutter, aperture, lens, focal length) and a creation time. GET
+          /api/photos returns these rows as JSON, and the site’s mapPhoto function turns each into its own Photo type, taking
+          the first colour as prominentColor and keeping avgColor, whose meta field holds a PhotoMeta with the camera settings, date and description.
         </desc>
         <Markers id="cls" />
 
@@ -305,6 +305,7 @@ export function PhotoModelDiagram() {
           'category: String',
           'tags: String[]',
           'colors: String[]',
+          'avgColor: String [0..1]',
           'dateTaken: DateTime [0..1]',
           'camera: String [0..1]',
           'iso: Int [0..1]',
@@ -321,9 +322,10 @@ export function PhotoModelDiagram() {
           'ratio: string [0..1]',
           'category: string [0..1]',
           'prominentColor: string [0..1]',
+          'avgColor: string [0..1]',
         ]} />
 
-        <ClassBox x={540} y={196} w={270} stereo="«TypeScript» src/types" name="PhotoMeta" attrs={[
+        <ClassBox x={540} y={212} w={270} stereo="«TypeScript» src/types" name="PhotoMeta" attrs={[
           'camera · lens · focalLength',
           'aperture · shutterSpeed · iso',
           'date · location · descriptor',
@@ -336,9 +338,9 @@ export function PhotoModelDiagram() {
         <text className="muted halo" x={415} y={114} textAnchor="middle">mapPhoto() in src/lib/api.ts</text>
 
         {/* Photo ◆— meta: PhotoMeta */}
-        <path className="diamond" d="M675 156 L681 165 L675 174 L669 165 Z" />
-        <path className="edge" d="M675 174 V196" markerEnd="url(#cls-arrow)" />
-        <text className="muted" x={686} y={190}>meta 0..1</text>
+        <path className="diamond" d="M675 172 L681 181 L675 190 L669 181 Z" />
+        <path className="edge" d="M675 190 V212" markerEnd="url(#cls-arrow)" />
+        <text className="muted" x={686} y={206}>meta 0..1</text>
       </svg>
     </DiagramFigure>
   )
@@ -397,7 +399,8 @@ export function PhotoPipelineDiagram() {
           Tailscale network. A chokidar watcher on that folder fires once a file has stopped changing for two seconds, and
           queues it if it is a .jpg or .jpeg. The queue hands files to processPhoto one at a time. For each, processPhoto checks
           PostgreSQL for an existing entry; if one exists it deletes the original and skips it. Otherwise it reads the EXIF
-          data with exifr, finds the top five colors with sharp, asks Ollama’s llava model for a description, category and
+          data with exifr, uses sharp to find the real colour of each of its top five colour bands and the frame’s average
+          colour, asks Ollama’s llava model for a description, category and
           tags, encodes a WebP of at most 350 KB into ~/photos/processed, deletes the original, and creates the photo’s row in
           PostgreSQL.
         </desc>
@@ -440,7 +443,7 @@ export function PhotoPipelineDiagram() {
         <text className="muted halo" x={170} y={378}>[new photo]</text>
 
         {self(PROC, 392, 'exifr: read EXIF')}
-        {self(PROC, 428, 'sharp: top 5 colors')}
+        {self(PROC, 428, 'sharp: band colours · average')}
 
         {call(PROC + 5, OLLAMA, 482, 'describe · categorize · tag')}
         {reply(OLLAMA, PROC + 5, 506, 'JSON')}

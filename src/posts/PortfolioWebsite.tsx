@@ -85,7 +85,7 @@ export default function PortfolioWebsite() {
       <ul>
         <li>It skips any photo that’s already in the database, deleting the duplicate original.</li>
         <li>It reads the EXIF data with exifr.</li>
-        <li>It finds the five most common colors with sharp, which feed the gallery’s color filter.</li>
+        <li>It finds the five most common color bands with sharp and keeps each one’s real color, which the gallery’s color filter sorts back into bands, plus the photo’s average color, which places it on the color plot.</li>
         <li>
           It asks the llava model, running in Ollama on the Mac mini, for a one-sentence description, a
           category and five tags.
