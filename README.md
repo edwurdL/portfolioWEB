@@ -17,7 +17,7 @@ renders is either compiled into the bundle or fetched at runtime from `api.eddie
 | Source | What comes from it |
 | --- | --- |
 | Bundle | Bio, project list, coursework, project photos |
-| `GET /api/photos` | Gallery photos with EXIF metadata, category, and prominent colors |
+| `GET /api/photos` | Gallery photos with EXIF metadata, category, prominent colors, and an average color for the color plot |
 | `GET /api/analytics` | Last-24h unique visitors, requests, and bandwidth, proxied from Cloudflare |
 
 The API is an Express server on a Mac mini, reached through a Cloudflare Tunnel and fronted
