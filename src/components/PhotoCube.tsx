@@ -36,19 +36,23 @@ const FIT_PAD = 8 // px, so the letters don't touch the edge
 const START_AZIM = -Math.PI / 3, START_ELEV = Math.PI / 6
 const SPIN = 0.15 // radians per second
 
-export default function PhotoCube({ photos, className = '', caption = true }: {
+export default function PhotoCube({ photos, className = '', caption = true, highlight }: {
   photos: Photo[]
   className?: string
   /** The line under the plot, with a link to the gallery. */
   caption?: boolean
+  /** Id of one photo to pick out, with guide lines showing where it sits. */
+  highlight?: string
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const plotted = photos.filter(p => p.avgColor)
+  const picked = highlight ? plotted.find(p => p.id === highlight) : undefined
 
   useEffect(() => {
     const canvas = canvasRef.current!
     const ctx = canvas.getContext('2d')!
-    const points = plotted.map(p => ({ at: toVec(p.avgColor!), hex: p.avgColor! }))
+    const points = plotted.map(p => ({ id: p.id, at: toVec(p.avgColor!), hex: p.avgColor! }))
+    const pick = points.find(p => p.id === picked?.id)
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     let azim = START_AZIM, elev = START_ELEV, visible = true, dirty = true, frame = 0, last = 0
     let drag: { x: number; y: number } | null = null
@@ -98,12 +102,44 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
       // Dots, far first so near ones cover them.
       const dots = points.map(p => ({ xy: screen(p.at), depth: dot(p.at, view), hex: p.hex })).sort((a, b) => a.depth - b.depth)
       const r = Math.max(1.5, scale * 0.008)
+      ctx.globalAlpha = pick ? 0.35 : 1 // the rest step back when one photo is picked out
       for (const d of dots) {
         ctx.beginPath()
         ctx.arc(d.xy[0], d.xy[1], r, 0, Math.PI * 2)
         ctx.fillStyle = d.hex
         ctx.fill()
       }
+      ctx.globalAlpha = 1
+      if (!pick) return
+
+      // The picked photo, drawn on top: guides drop from it to the floor (green = 0)
+      // and run across to the red and blue axes, like reading a point off a 3D chart.
+      const ink = getComputedStyle(canvas).color
+      const [x, y] = pick.at
+      const foot: Vec = [x, y, ORIGIN[2]]
+      ctx.beginPath()
+      line(pick.at, foot)
+      line(foot, [x, ORIGIN[1], ORIGIN[2]])
+      line(foot, [ORIGIN[0], y, ORIGIN[2]])
+      ctx.setLineDash([3, 3])
+      ctx.strokeStyle = ink
+      ctx.globalAlpha = 0.7
+      ctx.lineWidth = 1
+      ctx.stroke()
+      ctx.setLineDash([])
+      ctx.globalAlpha = 1
+      const [px, py] = screen(pick.at)
+      ctx.beginPath()
+      ctx.arc(px, py, r * 2.5 + 2, 0, Math.PI * 2)
+      ctx.fillStyle = pick.hex
+      ctx.fill()
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(px, py, r * 2.5 + 7, 0, Math.PI * 2)
+      ctx.globalAlpha = 0.5
+      ctx.stroke()
+      ctx.globalAlpha = 1
     }
 
     const tick = (now: number) => {
@@ -157,14 +193,15 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
       canvas.removeEventListener('pointerup', up)
       canvas.removeEventListener('pointercancel', up)
     }
-  }, [plotted.length, photos]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [plotted.length, photos, picked?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <figure className={`flex flex-col ${className}`}>
       <canvas
         ref={canvasRef}
         role="img"
-        aria-label={`3D scatter plot of ${plotted.length} photos by average red, green and blue`}
+        aria-label={`3D scatter plot of ${plotted.length} photos by average red, green and blue${
+          picked ? `, with this photo marked at ${picked.avgColor}` : ''}`}
         // pan-y: a vertical swipe still scrolls the page on a phone; sideways turns the plot.
         className="block w-full flex-1 min-h-0 cursor-grab active:cursor-grabbing touch-pan-y"
       />

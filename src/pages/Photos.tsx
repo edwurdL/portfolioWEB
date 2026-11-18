@@ -369,6 +369,9 @@ export default function Photos() {
                   <dd className="w-4 h-4 border border-white/20" style={{ backgroundColor: selected.prominentColor }}><span className="sr-only">{selected.prominentColor}</span></dd>
                 </div>
               </dl>
+
+              {/* Where this photo sits among the rest by average color. */}
+              <PhotoCube photos={photos} highlight={selected.id} caption={false} className="mt-5 h-56 border-t border-zinc-700 pt-4 text-zinc-300" />
             </div>
           </div>
 
