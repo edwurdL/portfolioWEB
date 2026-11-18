@@ -99,19 +99,17 @@ export default function VexRobotStructures() {
 
       <h2>How I approached the parts</h2>
       <p>
-        <strong>Choosing materials.</strong> Rather than one stock material for everything, I chose the
-        material and thickness for each part based on the loads it actually carried. On the small
-        robot that meant aluminum where the ball guide needed stiffness, and polypropylene where the
-        shell needed to survive impacts.
+        I picked the material and thickness of each part from the loads it carried. On the small robot
+        that meant aluminum where the ball guide needed stiffness, and polypropylene where the shell
+        had to survive impacts.
       </p>
       <p>
-        <strong>Cutting weight, keeping stiffness.</strong> I cut lightening pockets into low-stress
-        regions to remove mass without giving up stiffness. Where parts were twisted under load, I added
-        gussets and laminated layers instead.
+        To save weight, I cut lightening pockets into low-stress regions. Parts that twisted under load
+        got gussets and laminated layers instead.
       </p>
       <p>
-        <strong>Staying compatible.</strong> I matched hole patterns to the VEX grid, so the custom
-        parts stayed compatible with off-the-shelf hardware and could be swapped in mid-build.
+        The hole patterns follow the VEX grid, so the custom parts work with off-the-shelf hardware
+        and could be swapped in mid-build.
       </p>
     </>
   )

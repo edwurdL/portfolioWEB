@@ -48,8 +48,8 @@ function AnimatedRoutes() {
 
 function NotFound() {
   return (
-    <main className="max-w-3xl mx-auto px-6 py-12">
-      <h1 className="font-serif text-3xl text-zinc-900 dark:text-zinc-100 mb-2">Page not found</h1>
+    <main className="frame py-16">
+      <h1 className="font-serif text-5xl tracking-tight text-zinc-900 dark:text-zinc-100 mb-3">Page not found</h1>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         Nothing lives at this address.{' '}
         <Link to="/" className="underline underline-offset-2 hover:text-zinc-900 dark:hover:text-zinc-100">
@@ -68,13 +68,7 @@ function NotFound() {
 export default function App() {
   const { pathname } = useLocation()
 
-  useEffect(() => {
-    const saved = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const dark = saved !== null ? saved === 'dark' : prefersDark
-    document.documentElement.classList.toggle('dark', dark)
-    return watchFavicon()
-  }, [])
+  useEffect(watchFavicon, [])
 
   // The prerendered HTML already carries the right title; this keeps it right
   // as you move between pages without a reload.

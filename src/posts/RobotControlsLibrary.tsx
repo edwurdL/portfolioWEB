@@ -14,11 +14,11 @@ const FOLDER = 'robot-controls-library'
 export default function RobotControlsLibrary() {
   return (
     <>
-      {/* Remove once the library and this write-up are finished. Styled to match
-          the blue "in-progress" status pill. */}
+      {/* Remove once the library and this write-up are finished. A ruled aside,
+          quieter than the text it introduces. */}
       <div
         role="note"
-        className="mb-8 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-800 dark:text-blue-300"
+        className="mb-10 border-b border-zinc-300 dark:border-zinc-700 pb-4 text-[0.95rem] text-zinc-600 dark:text-zinc-400"
       >
         <span className="font-medium">Work in progress.</span> This library is still being developed, so
         some of the writing, videos, and pictures here may be incomplete.
@@ -49,8 +49,7 @@ export default function RobotControlsLibrary() {
       <h2>Third-party sensors</h2>
       <p>
         {/* TODO: how a new sensor plugs in, and which sensors it's been used with so far. */}
-        I built the library so that sensors outside the stock VEX lineup can feed into it, rather than
-        limiting it to the hardware VEX ships.
+        Sensors outside the stock VEX lineup can feed into the library alongside VEX’s own hardware.
       </p>
 
       <Figure folder={FOLDER} file="2-sensors.webp" caption="Third-party sensors mounted on the robot" />

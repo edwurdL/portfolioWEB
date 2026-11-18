@@ -15,23 +15,20 @@
   <meta property="og:image" content="https://eddie-lai.com/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <!-- meta:end -->
-  <link rel="icon" id="favicon" type="image/svg+xml" />
   <!-- The photo API: the list is fetched with CORS, the images without, so
        each needs its own warmed connection. -->
   <link rel="preconnect" href="https://api.eddie-lai.com" crossorigin />
   <link rel="preconnect" href="https://api.eddie-lai.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Schibsted+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Sets the theme before first paint so there's no flash. The only place the
+       saved theme is read; ThemeToggle takes it from the class on <html>. -->
   <script>
-    const saved = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const dark = saved === 'dark' || (!saved && prefersDark)
+    let saved = null
+    try { saved = localStorage.getItem('theme') } catch {} // throws when site data is blocked
+    const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches
     if (dark) document.documentElement.classList.add('dark')
-    const bg = dark ? '#18181b' : '#fafafa', fg = dark ? '#fafafa' : '#18181b', stroke = dark ? '#3f3f46' : '#e4e4e7'
-    document.getElementById('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="2" y="2" width="60" height="60" rx="16" fill="${bg}" stroke="${stroke}" stroke-width="2"/><text x="32" y="34" dominant-baseline="central" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="34" font-weight="700" textLength="46" lengthAdjust="spacingAndGlyphs" fill="${fg}">[EL]</text></svg>`
-    )
   </script>
   <script type="module" src="/src/main.tsx"></script>
 </head>

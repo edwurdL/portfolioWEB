@@ -51,7 +51,7 @@ export default function Cr10Upgrade() {
 
       <h2>Testing</h2>
       <p>
-        The rebuild was validated with leveling runs and first-layer test prints, repeated until the bed
+        I tested the rebuild with leveling runs and first-layer test prints, repeating them until the bed
         compensated correctly across its full area.
       </p>
 

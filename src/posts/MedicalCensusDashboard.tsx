@@ -6,9 +6,8 @@ export default function MedicalCensusDashboard() {
   return (
     <>
       <p>
-        I built a Tableau dashboard on more than 400,000 state-wide medical census data points. The
-        goal was to make trends easy to see and to allow high-dimensional analysis across demographic
-        and geographic breakdowns.
+        I built a Tableau dashboard on more than 400,000 state-wide medical census data points. It makes
+        trends easy to see and lets you break them down by demographics and geography.
       </p>
 
       <h2>The dashboard</h2>

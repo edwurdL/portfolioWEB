@@ -122,13 +122,13 @@ function SiteAnalyticsTiles() {
 
   return (
     // Plain <div>s throughout: the post's article styles add spacing to every <p>.
-    <div className="my-6">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div className="my-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 border-y border-zinc-200 dark:border-zinc-800 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200 dark:divide-zinc-800">
         <StatTile label="Unique visitors" value={fmt(stats?.uniqueVisitors)} />
         <StatTile label="Requests" value={fmt(stats?.totalRequests)} />
         <StatTile label="Bandwidth" value={formatBytes(stats?.totalBytes)} />
       </div>
-      <div className="mt-2 text-xs text-zinc-400 dark:text-zinc-500">
+      <div className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
         {failed ? 'The analytics endpoint couldn’t be reached just now.' : 'Last 24 hours · Cloudflare'}
       </div>
     </div>
@@ -149,11 +149,9 @@ function formatBytes(bytes?: number): string {
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 px-5 py-4">
-      <div className="text-[0.65rem] uppercase tracking-[0.15em] text-zinc-400 dark:text-zinc-500 mb-1.5">
-        {label}
-      </div>
-      <div className="text-2xl font-light text-zinc-800 dark:text-zinc-200 tabular-nums">{value}</div>
+    <div className="py-4 sm:px-5 sm:first:pl-0">
+      <div className="font-serif text-4xl text-zinc-900 dark:text-zinc-100 tabular-nums">{value}</div>
+      <div className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{label}</div>
     </div>
   )
 }

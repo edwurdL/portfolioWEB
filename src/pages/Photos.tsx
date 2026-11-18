@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadPhotos, loadedPhotos } from '../lib/api'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
@@ -52,18 +52,19 @@ export const MOCK: Required<Photo>[] = [
   { id:'30', url:deadfile, ratio:'3/4',  category:'Abstract',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'100mm macro', focalLength:'100mm', shutterSpeed:'1/320s',  aperture:'f/16', iso:640,  date:'2022-06-03', location:'Studio',             descriptor:'Rust texture' } },
 ]
 
-function hexToHue(hex: string): number {
+/** Hue in 10° steps (0–36) so near-equal hues sort by date; greys get 37, after every colour. */
+function hueBucket(hex: string): number {
   const r = parseInt(hex.slice(1,3),16)/255
   const g = parseInt(hex.slice(3,5),16)/255
   const b = parseInt(hex.slice(5,7),16)/255
   const max = Math.max(r,g,b), min = Math.min(r,g,b)
-  if (max === min) return 0
   const d = max - min
+  if (d < 0.08) return 37
   let h = 0
   if (max === r) h = ((g-b)/d + (g<b?6:0))/6
   else if (max === g) h = ((b-r)/d + 2)/6
   else h = ((r-g)/d + 4)/6
-  return h * 360
+  return Math.round(h * 36)
 }
 
 function colorDistance(a: string, b: string): number {
@@ -76,7 +77,13 @@ const SKELETON_RATIOS = ['3/4', '1/1', '4/5', '2/3', '16/9', '3/4', '1/1', '4/5'
 /** Tiles near the top that load right away instead of waiting their turn. */
 const EAGER_TILES = 8
 
-const toGallery = (list: Photo[]): Required<Photo>[] => (list.length ? list.map(createPhoto) : MOCK)
+// The mock set stands in only during local dev (the API blocks localhost via CORS);
+// live visitors never see invented photos.
+const toGallery = (list: Photo[]): Required<Photo>[] =>
+  list.length || !import.meta.env.DEV ? list.map(createPhoto) : MOCK
+
+/** Missing or 'N/A' dates count as oldest, so they can't scramble the order. */
+const timeOf = (p: Required<Photo>) => Date.parse(String(p.meta.date)) || 0
 
 function colsFor(w: number) {
   return w >= 1024 ? 4 : w >= 768 ? 3 : 2
@@ -99,65 +106,58 @@ export default function Photos() {
     return ready ? toGallery(ready) : []
   })
   const [loading, setLoading] = useState(() => !loadedPhotos())
+  const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState<Record<string, true>>({})
   const [category, setCategory] = useState('All')
   const [colorFilter, setColorFilter] = useState<string | null>(null)
   const [newestFirst, setNewestFirst] = useState(true)
   const [spectrumActive, setSpectrumActive] = useState(false)
-  const [hovered, setHovered] = useState<string | null>(null)
   const [selected, setSelected] = useState<Required<Photo> | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [ratios, setRatios] = useState<Record<string, string>>({})
   const columns = useColumnCount()
-  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Fetched once per visit and shared with Home (API is rate-limited). On
-    // failure — e.g. CORS block during localhost dev — fall back to the mock set
-    // so the page still renders something. Skeletons show until this resolves.
+    // Fetched once per visit and shared with Home (API is rate-limited).
+    // Skeletons show until this resolves.
     if (!loading) return
     loadPhotos()
       .then(data => setPhotos(toGallery(data)))
-      .catch(() => setPhotos(MOCK))
+      .catch(() => (import.meta.env.DEV ? setPhotos(MOCK) : setFailed(true)))
       .finally(() => setLoading(false))
   }, [])
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!dropdownRef.current?.contains(e.target as Node)) setDropdownOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  useEffect(() => {
-    if (selected) {
-      document.body.style.overflow = 'hidden'
-      requestAnimationFrame(() => setModalVisible(true))
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => { document.body.style.overflow = '' }
-  }, [selected])
 
   const closeModal = () => {
     setModalVisible(false)
     setTimeout(() => setSelected(null), 250)
   }
 
-  const filtered = photos
+  // Same behaviour as components/Lightbox: page locked, Escape closes, focus
+  // moves to the close button and returns to the tile afterwards.
+  const closeRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!selected) return
+    const returnFocus = document.activeElement as HTMLElement | null
+    document.body.style.overflow = 'hidden'
+    requestAnimationFrame(() => setModalVisible(true))
+    closeRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeModal() }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+      returnFocus?.focus()
+    }
+  }, [selected])
+
+  // Memoised so image loads (which update `loaded`/`ratios`) don't re-sort ~600 photos each.
+  const filtered = useMemo(() => photos
     .filter(p => category === 'All' || p.category === category)
     .filter(p => !colorFilter || colorDistance(p.prominentColor, colorFilter) < 120)
-    .sort((a, b) => {
-      if (spectrumActive) {
-        const hueDiff = hexToHue(a.prominentColor) - hexToHue(b.prominentColor)
-        if (Math.abs(hueDiff) > 10) return hueDiff
-      }
-      const da = new Date(a.meta.date ?? 0).getTime()
-      const db = new Date(b.meta.date ?? 0).getTime()
-      return newestFirst ? db - da : da - db
-    })
+    .sort((a, b) =>
+      (spectrumActive ? hueBucket(a.prominentColor) - hueBucket(b.prominentColor) : 0) ||
+      (newestFirst ? timeOf(b) - timeOf(a) : timeOf(a) - timeOf(b))
+    ), [photos, category, colorFilter, spectrumActive, newestFirst])
 
   // Distribute into fixed columns round-robin. Unlike CSS multicol, each column
   // is an independent stack, so a tile changing height only shifts the tiles
@@ -166,149 +166,132 @@ export default function Photos() {
   const buckets: { photo: Required<Photo>; rank: number }[][] = Array.from({ length: columns }, () => [])
   filtered.forEach((photo, rank) => buckets[rank % columns].push({ photo, rank }))
 
+  const toggleClass = (on: boolean) =>
+    `py-1 cursor-pointer transition-colors ${
+      on
+        ? 'text-zinc-900 dark:text-zinc-100 underline decoration-1 underline-offset-[6px]'
+        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+    }`
+
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
-
+    <>
       {/* Filter toolbar */}
-      <div className="sticky top-14 z-30 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-zinc-100 dark:border-zinc-800 transition-colors duration-500">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center gap-3 flex-wrap">
-
-        {/* Category dropdown */}
-        <div className="relative flex-shrink-0" ref={dropdownRef}>
-          <button
-            onClick={() => setDropdownOpen(v => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:border-zinc-400 transition-colors cursor-pointer"
-          >
-            {category}
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}>
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          {dropdownOpen && (
-            <div className="absolute top-full left-0 mt-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg z-50 py-1 min-w-36 overflow-hidden">
-              {CATEGORIES.map(c => (
-                <button
-                  key={c}
-                  onClick={() => { setCategory(c); setDropdownOpen(false) }}
-                  className={`w-full text-left px-4 py-2 text-sm transition-colors cursor-pointer ${
-                    category === c
-                      ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-700/50'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Newest / Oldest toggle */}
-        <div className="flex-shrink-0 flex rounded-full border border-zinc-200 dark:border-zinc-700 overflow-hidden text-sm">
-          {([['newest', true], ['oldest', false]] as [string, boolean][]).map(([label, val]) => (
-            <button
-              key={label}
-              onClick={() => setNewestFirst(val)}
-              className={`px-3 py-1.5 transition-colors cursor-pointer capitalize ${
-                newestFirst === val
-                  ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-                  : 'text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-              }`}
+      <div className="md:sticky md:top-14 z-30 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="frame py-3 flex items-center gap-x-6 gap-y-3 flex-wrap text-sm">
+          <label className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+            <span className="sr-only sm:not-sr-only">Category</span>
+            <select
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              className="cursor-pointer bg-transparent border-b border-zinc-300 dark:border-zinc-700 py-1 pr-1 text-zinc-900 dark:text-zinc-100 hover:border-zinc-900 dark:hover:border-zinc-100"
             >
-              {label}
-            </button>
-          ))}
-        </div>
+              {CATEGORIES.map(c => (
+                <option key={c} value={c} className="bg-white dark:bg-zinc-900">{c === 'All' ? 'All photos' : c}</option>
+              ))}
+            </select>
+          </label>
 
-        {/* Spectrum sort */}
-        <button
-          onClick={() => setSpectrumActive(v => !v)}
-          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm text-white transition-all cursor-pointer border-2 ${spectrumActive ? 'border-white shadow-lg scale-105' : 'border-transparent'}`}
-          style={{ background: 'linear-gradient(to right, #dc2626, #f97316, #ca8a04, #16a34a, #0891b2, #2563eb, #7c3aed)' }}
-        >
-          Spectrum
-        </button>
+          <div role="group" aria-label="Order" className="flex gap-4">
+            <button onClick={() => setNewestFirst(true)} aria-pressed={newestFirst} className={toggleClass(newestFirst)}>Newest</button>
+            <button onClick={() => setNewestFirst(false)} aria-pressed={!newestFirst} className={toggleClass(!newestFirst)}>Oldest</button>
+          </div>
 
-        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-700 flex-shrink-0" />
-
-        {/* Color swatches with neutral bg */}
-        <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full px-3 py-2 flex-shrink-0">
-          {COLOR_SWATCHES.map(s => (
-            <button
-              key={s.label}
-              title={s.label}
-              onClick={() => setColorFilter(colorFilter === s.hex ? null : s.hex)}
-              className="w-4 h-4 rounded-full transition-all cursor-pointer flex-shrink-0 border"
-              style={{
-                backgroundColor: s.hex,
-                borderColor: colorFilter === s.hex ? '#6366f1' : 'rgba(0,0,0,0.15)',
-                boxShadow: colorFilter === s.hex ? '0 0 0 2px #6366f1' : 'none',
-              }}
+          <button
+            onClick={() => setSpectrumActive(v => !v)}
+            aria-pressed={spectrumActive}
+            className={`flex items-center gap-2 ${toggleClass(spectrumActive)}`}
+          >
+            {/* The order this sorts into, drawn as a key. */}
+            <span
+              aria-hidden="true"
+              className="block w-6 h-1.5"
+              style={{ background: 'linear-gradient(to right, #dc2626, #f97316, #ca8a04, #16a34a, #0891b2, #2563eb, #7c3aed)' }}
             />
-          ))}
-          {colorFilter && (
-            <button onClick={() => setColorFilter(null)} className="text-[0.6rem] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 ml-0.5 cursor-pointer">
-              ✕
-            </button>
+            By colour
+          </button>
+
+          <div role="group" aria-label="Filter by colour" className="flex items-center gap-1.5">
+            {COLOR_SWATCHES.map(s => (
+              <button
+                key={s.label}
+                title={s.label}
+                aria-label={`${s.label} photos`}
+                aria-pressed={colorFilter === s.hex}
+                onClick={() => setColorFilter(colorFilter === s.hex ? null : s.hex)}
+                className={`w-4 h-4 cursor-pointer flex-shrink-0 border border-black/10 dark:border-white/15 outline-offset-2 ${
+                  colorFilter === s.hex ? 'outline outline-1 outline-zinc-900 dark:outline-zinc-100' : ''
+                }`}
+                style={{ backgroundColor: s.hex }}
+              />
+            ))}
+            {colorFilter && (
+              <button onClick={() => setColorFilter(null)} className="ml-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer">
+                Clear
+              </button>
+            )}
+          </div>
+
+          {!loading && (
+            <p className="ml-auto text-zinc-500 dark:text-zinc-400 tabular-nums">
+              {filtered.length} {filtered.length === 1 ? 'photo' : 'photos'}
+            </p>
           )}
-        </div>
         </div>
       </div>
 
       {/* Masonry grid */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="frame pt-6 pb-20">
       {loading ? (
-        <div className="flex gap-4">
+        <div className="flex gap-2 sm:gap-3" aria-label="Loading photos">
           {Array.from({ length: columns }).map((_, ci) => (
-            <div key={ci} className="flex-1 flex flex-col gap-4 min-w-0">
-              {SKELETON_RATIOS.map((r, i) => (
+            <div key={ci} className="flex-1 flex flex-col gap-2 sm:gap-3 min-w-0">
+              {SKELETON_RATIOS.map((_, i) => (
                 <div
                   key={i}
-                  className="w-full rounded-xl bg-zinc-100 dark:bg-zinc-800 animate-pulse"
-                  style={{ aspectRatio: SKELETON_RATIOS[(i + ci) % SKELETON_RATIOS.length] ?? r }}
+                  className="w-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+                  style={{ aspectRatio: SKELETON_RATIOS[(i + ci) % SKELETON_RATIOS.length] }}
                 />
               ))}
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-center text-sm text-zinc-400 dark:text-zinc-500 py-20">
-          No photos match these filters.
+        <p className="py-24 text-zinc-500 dark:text-zinc-400">
+          {failed ? 'The gallery is offline right now. Try again in a bit.' : 'No photos match these filters.'}
         </p>
       ) : (
-        <div className="flex gap-4">
+        <div className="flex gap-2 sm:gap-3">
           {buckets.map((col, ci) => (
-            <div key={ci} className="flex-1 flex flex-col gap-4 min-w-0">
+            <div key={ci} className="flex-1 flex flex-col gap-2 sm:gap-3 min-w-0">
               {col.map(({ photo, rank }) => (
-                <div
+                <button
                   key={photo.id}
-                  className="cursor-pointer"
-                  onMouseEnter={() => setHovered(photo.id)}
-                  onMouseLeave={() => setHovered(null)}
+                  type="button"
+                  aria-label={`Open ${photo.meta.descriptor}`}
+                  className="group block w-full cursor-zoom-in"
                   onClick={() => setSelected(photo)}
                 >
+                  {/* Until it arrives the tile shows the photo's own prominent
+                      colour; the image then fades in over it. */}
                   <div
-                    className={`w-full rounded-xl overflow-hidden border transition-all ${hovered === photo.id ? 'border-zinc-400 dark:border-zinc-500 shadow-md' : 'border-zinc-100 dark:border-zinc-800'} relative`}
+                    className="w-full overflow-hidden"
                     style={{ aspectRatio: ratios[photo.id] ?? photo.ratio, backgroundColor: photo.prominentColor }}
                   >
-                    {/* Until it arrives the tile shows the photo's own prominent
-                        colour; the image then fades in over it. */}
                     <img
                       src={photo.url}
                       alt={photo.meta.descriptor}
                       loading={rank < EAGER_TILES ? 'eager' : 'lazy'}
                       fetchPriority={rank < EAGER_TILES ? 'high' : 'auto'}
                       decoding="async"
-                      className={`w-full h-full object-cover transition-opacity duration-500 ${loaded[photo.id] ? 'opacity-100' : 'opacity-0'}`}
+                      className={`w-full h-full object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-[1.02] ${loaded[photo.id] ? 'opacity-100' : 'opacity-0'}`}
                       onLoad={e => {
                         const { naturalWidth: w, naturalHeight: h } = e.currentTarget
                         if (w && h) setRatios(r => (r[photo.id] ? r : { ...r, [photo.id]: `${w}/${h}` }))
                         setLoaded(l => (l[photo.id] ? l : { ...l, [photo.id]: true }))
                       }}
                     />
-                    <div className="absolute top-2 right-2 w-3 h-3 rounded-full border border-white/50 shadow" style={{ backgroundColor: photo.prominentColor }} />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           ))}
@@ -316,60 +299,61 @@ export default function Photos() {
       )}
       </main>
 
-      {/* Photo modal */}
+      {/* Photo view: the picture as large as the screen allows, its label beside it. */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6"
+          className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center p-4 sm:p-8"
           style={{ opacity: modalVisible ? 1 : 0, transition: 'opacity 250ms ease' }}
           onClick={closeModal}
         >
           <div
-            className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
-            style={{ transform: modalVisible ? 'scale(1)' : 'scale(0.96)', transition: 'transform 250ms ease, opacity 250ms ease', opacity: modalVisible ? 1 : 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={selected.meta.descriptor}
+            className="w-full max-w-[85rem] max-h-full overflow-y-auto grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-10 lg:items-end text-zinc-300"
+            style={{ transform: modalVisible ? 'scale(1)' : 'scale(0.98)', transition: 'transform 250ms ease' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-full rounded-t-2xl overflow-hidden">
-              <img src={selected.url} alt="" className="w-full object-cover" />
-            </div>
+            <img src={selected.url} alt={selected.meta.descriptor} className="block mx-auto max-w-full max-h-[70vh] lg:max-h-[88vh] object-contain" />
 
-            <div className="p-6">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div>
-                  <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">{selected.meta.descriptor}</h2>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-                    {[selected.meta.location, selected.meta.date].filter(v => v && v !== 'N/A').join(' · ')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="w-4 h-4 rounded-full border border-zinc-200 dark:border-zinc-700" style={{ backgroundColor: selected.prominentColor }} />
-                  <button onClick={closeModal} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  </button>
-                </div>
-              </div>
+            <div className="pb-1">
+              <h2 className="font-serif text-3xl leading-tight text-zinc-50">{selected.meta.descriptor}</h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                {[selected.category, selected.meta.location, selected.meta.date].filter(v => v && v !== 'N/A').join(' · ')}
+              </p>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-4">
-                  {[['Camera', selected.meta.camera], ['Lens', selected.meta.lens], ['Focal Length', selected.meta.focalLength]] .map(([label, value]) => (
-                    <div key={label}>
-                      <p className="text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mb-0.5">{label}</p>
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300">{value}</p>
-                    </div>
-                  ))}
+              <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-zinc-700 pt-5 text-sm">
+                {([
+                  ['Camera', selected.meta.camera],
+                  ['Lens', selected.meta.lens],
+                  ['Focal length', selected.meta.focalLength],
+                  ['Aperture', selected.meta.aperture],
+                  ['Shutter', selected.meta.shutterSpeed],
+                  ['ISO', String(selected.meta.iso)],
+                ] as const).map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-zinc-500">{label}</dt>
+                    <dd className="mt-0.5 text-zinc-100">{value}</dd>
+                  </div>
+                ))}
+                <div className="col-span-2 flex items-center gap-2">
+                  <dt className="text-zinc-500">Colour</dt>
+                  <dd className="w-4 h-4 border border-white/20" style={{ backgroundColor: selected.prominentColor }}><span className="sr-only">{selected.prominentColor}</span></dd>
                 </div>
-                <div className="flex flex-col gap-4">
-                  {[['ISO', String(selected.meta.iso)], ['Aperture', selected.meta.aperture], ['Shutter Speed', selected.meta.shutterSpeed]].map(([label, value]) => (
-                    <div key={label}>
-                      <p className="text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mb-0.5">{label}</p>
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300">{value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              </dl>
             </div>
           </div>
+
+          <button
+            ref={closeRef}
+            onClick={closeModal}
+            aria-label="Close photo"
+            className="absolute top-4 right-4 sm:top-5 sm:right-5 p-1 text-zinc-400 hover:text-zinc-50 cursor-pointer"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       )}
-    </div>
+    </>
   )
 }

@@ -2,17 +2,54 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Schibsted Grotesk', system-ui, sans-serif;
+  --font-serif: 'Newsreader', Georgia, serif;
+}
+
+/* The one page width every page shares: a wide frame, like a gallery wall.
+   Running text inside it keeps its own reading measure (about 60ch, ~75 characters). */
+@utility frame {
+  width: 100%;
+  max-width: 85rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 40rem) {
+    padding-inline: 2.5rem;
+  }
 }
 
 html {
   scrollbar-gutter: stable;
   background-color: white;
+  color-scheme: light;
+  scrollbar-color: #d4d4d8 transparent;
+  -webkit-font-smoothing: antialiased;
 }
 
 html.dark {
   background-color: #18181b;
+  color-scheme: dark;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+/* The parts the browser draws, themed so they belong to the page. */
+::selection {
+  background: #18181b;
+  color: #fafafa;
+}
+html.dark ::selection {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+:focus-visible {
+  outline: 1.5px solid currentColor;
+  outline-offset: 3px;
+}
+
+a {
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
 }
 
 /* Every element eases its colours so flipping the theme fades rather than
@@ -23,6 +60,10 @@ html.dark {
 @layer base {
   *, *::before, *::after {
     transition: color 0.5s ease, background-color 0.5s ease, border-color 0.5s ease;
+  }
+  /* No single word stranded on a paragraph's last line. */
+  p, li, figcaption {
+    text-wrap: pretty;
   }
 }
 

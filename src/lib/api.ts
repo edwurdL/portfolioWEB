@@ -1,4 +1,4 @@
-import type { Photo, Project, SiteAnalytics } from '../types'
+import type { Photo, SiteAnalytics } from '../types'
 
 // Photos are served by the self-hosted REST API. `url` fields come back as
 // relative paths, so the base must be prepended to load the actual WebP files.
@@ -52,19 +52,6 @@ function mapPhoto(p: ApiPhoto): Photo {
   }
 }
 
-export interface PhotoQuery {
-  category?: string
-  tag?: string
-  color?: string
-  sort?: 'date'
-}
-
-export async function fetchPhotos(params: PhotoQuery = {}): Promise<Photo[]> {
-  const qs = new URLSearchParams(params as Record<string, string>).toString()
-  const data = await fetchJSON<ApiPhoto[]>(`/api/photos${qs ? `?${qs}` : ''}`)
-  return data.map(mapPhoto)
-}
-
 // One fetch of the photo list per visit, shared by Home's preview card and the
 // Photos page: whichever asks first starts it, and arriving on Photos from Home
 // finds the list already in hand instead of showing skeletons again.
@@ -72,8 +59,8 @@ let photoList: Promise<Photo[]> | undefined
 let photoListResult: Photo[] | undefined
 
 export function loadPhotos(): Promise<Photo[]> {
-  photoList ??= fetchPhotos().then(
-    list => (photoListResult = list),
+  photoList ??= fetchJSON<ApiPhoto[]>('/api/photos').then(
+    data => (photoListResult = data.map(mapPhoto)),
     err => {
       photoList = undefined // let the next caller retry
       throw err
@@ -85,10 +72,6 @@ export function loadPhotos(): Promise<Photo[]> {
 /** The photo list if it has already arrived, without waiting. */
 export function loadedPhotos(): Photo[] | undefined {
   return photoListResult
-}
-
-export function fetchProjects(limit = 5, offset = 0): Promise<Project[]> {
-  return fetchJSON<Project[]>(`/api/projects?limit=${limit}&offset=${offset}`);
 }
 
 export function fetchAnalytics(): Promise<SiteAnalytics> {

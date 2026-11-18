@@ -1,22 +1,15 @@
 import type { ReactNode } from 'react'
+import { VectorFigure } from './Chart'
 
 /*
  * UML diagrams for the "How this website works" post, drawn as inline SVG so
  * they follow the site's light/dark theme (colours come from the .uml rules in
- * style.css) and stay sharp at any size. On a phone each diagram keeps a
- * readable minimum width and scrolls sideways inside its own box, like the
- * autotune charts.
+ * style.css) and stay sharp at any size. Each sits in a VectorFigure, which
+ * scrolls it sideways on a phone and enlarges it on click.
  */
 
 function DiagramFigure({ caption, children }: { caption: string; children: ReactNode }) {
-  return (
-    <figure className="my-8">
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        {children}
-      </div>
-      <figcaption className="mt-2 text-xs text-zinc-500 dark:text-zinc-400 text-center">{caption}</figcaption>
-    </figure>
-  )
+  return <VectorFigure caption={caption}>{children}</VectorFigure>
 }
 
 /** Arrowheads; ids are prefixed per diagram since several share one page. */

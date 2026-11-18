@@ -96,68 +96,51 @@ export default function Coursework() {
   }, [hash])
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-500">
-      <main className="max-w-3xl mx-auto px-6 py-12">
-        <header className="mb-10">
-          <h1 className="font-serif text-3xl text-zinc-900 dark:text-zinc-100 mb-1">Coursework</h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            EECS courses at the University of Michigan.
-          </p>
-        </header>
+    <main className="frame pt-14 pb-20 sm:pt-20">
+      <header className="mb-12 sm:mb-16">
+        <h1 className="font-serif text-5xl sm:text-6xl tracking-tight text-zinc-900 dark:text-zinc-100">Coursework</h1>
+        <p className="mt-3 text-zinc-500 dark:text-zinc-400">EECS courses at the University of Michigan.</p>
+      </header>
 
-        <div className="flex flex-col gap-10">
-          {TERMS.map(({ term, current, courses }) => (
-            <section key={term}>
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
-                  {term}
-                </h2>
-                {current && (
-                  <span className="text-[0.6rem] uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">
-                    In progress
-                  </span>
-                )}
+      {TERMS.map(({ term, current, courses }) => (
+        <section key={term} className="border-t border-zinc-900 dark:border-zinc-100 pt-5 pb-12 md:grid md:grid-cols-[9rem_minmax(0,1fr)] md:gap-10">
+          <div className="mb-4 md:mb-0 md:sticky md:top-20 md:self-start">
+            <h2 className="font-serif text-2xl text-zinc-900 dark:text-zinc-100">{term}</h2>
+            {current && <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">In progress</p>}
+          </div>
+
+          <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            {courses.map(course => (
+              <div
+                key={course.code}
+                id={courseAnchor(course.code)}
+                className="scroll-mt-20 py-6 first:pt-1 sm:grid sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:gap-6"
+              >
+                <p className="text-sm tabular-nums text-zinc-500 dark:text-zinc-400 pt-0.5 mb-1 sm:mb-0">{course.code}</p>
+                <div className="max-w-[62ch]">
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">{course.name}</h3>
+                  <p className="mt-1.5 text-zinc-600 dark:text-zinc-400 leading-relaxed">{course.desc}</p>
+                  {course.projects && (
+                    <>
+                      <h4 className="mt-6 mb-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">Course projects</h4>
+                      <ul className="flex flex-col gap-3 border-l border-zinc-200 dark:border-zinc-800 pl-4">
+                        {course.projects.map(proj => (
+                          <li key={proj.name} className="leading-relaxed">
+                            <span className="font-medium text-zinc-800 dark:text-zinc-200">{proj.name}</span>
+                            {proj.who && <span className="text-sm text-zinc-500 dark:text-zinc-400">, {proj.who.toLowerCase()}</span>}
+                            <span className="block text-zinc-600 dark:text-zinc-400">{proj.desc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">{PRIVATE_CODE_NOTE}.</p>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800 border-y border-zinc-100 dark:border-zinc-800">
-                {courses.map(course => (
-                  <div key={course.code} id={courseAnchor(course.code)} className="scroll-mt-20 flex gap-4 py-4">
-                    <p className="w-24 flex-shrink-0 font-mono text-xs text-zinc-400 dark:text-zinc-500 pt-0.5">
-                      {course.code}
-                    </p>
-                    <div>
-                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-0.5">
-                        {course.name}
-                      </p>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                        {course.desc}
-                      </p>
-                      {course.projects && (
-                        <div className="mt-3">
-                          <p className="text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-2">
-                            Projects
-                          </p>
-                          <ul className="flex flex-col gap-2">
-                            {course.projects.map(proj => (
-                              <li key={proj.name} className="text-sm leading-relaxed">
-                                <span className="font-medium text-zinc-700 dark:text-zinc-300">{proj.name}</span>
-                                {proj.who && (
-                                  <span className="text-xs text-zinc-400 dark:text-zinc-500"> · {proj.who}</span>
-                                )}
-                                <span className="text-zinc-500 dark:text-zinc-400"> — {proj.desc}</span>
-                              </li>
-                            ))}
-                          </ul>
-                          <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-500">{PRIVATE_CODE_NOTE}.</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      </main>
-    </div>
+            ))}
+          </div>
+        </section>
+      ))}
+    </main>
   )
 }

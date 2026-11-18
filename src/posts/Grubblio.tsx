@@ -19,7 +19,7 @@ export default function Grubblio() {
       {/* Styled to match the robot post's work-in-progress note. */}
       <div
         role="note"
-        className="mb-8 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-900/20 px-4 py-3 text-sm text-blue-800 dark:text-blue-300"
+        className="mb-10 border-b border-zinc-300 dark:border-zinc-700 pb-4 text-[0.95rem] text-zinc-600 dark:text-zinc-400"
       >
         <span className="font-medium">Screenshots from November 17, 2026.</span> The game is still changing, so if
         you play it after that date, it may not look or play exactly like the pictures and clips here.

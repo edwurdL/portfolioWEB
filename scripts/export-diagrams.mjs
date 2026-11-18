@@ -35,7 +35,7 @@ const dark = rules.match(/html\.dark \.uml \{[^}]*\}/)
 if (!dark) throw new Error('Dark-mode UML colours not found in src/style.css')
 rules = rules
   .replace(dark[0], '')
-  .replace('font-family: var(--font-sans);', "font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;")
+  .replace('font-family: var(--font-sans);', "font-family: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;")
 const style =
   rules +
   `\n@media (prefers-color-scheme: dark) {\n  ${dark[0].replace('html.dark .uml', '.uml')}\n}\n` +

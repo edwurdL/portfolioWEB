@@ -24,7 +24,7 @@ const CONTACTS = [
 ]
 
 /** One rotation of a section card: an eyebrow and the body underneath it. */
-type Preview = { key: string; eyebrow: string; content: ReactNode }
+type Preview = { key: string; content: ReactNode }
 
 /**
  * The projects the home page leads with, in the order shown, each with the
@@ -90,20 +90,15 @@ const FEATURED = ([
 // shows has a page behind it. Already newest-first, as on the Projects page.
 const PROJECT_PREVIEWS: Preview[] = PROJECTS.filter(p => POSTS.some(post => post.projectId === p.id)).map(p => ({
   key: p.id,
-  eyebrow: STATUS_LABEL[p.status] ?? p.status,
   content: (
     <>
-      <div className="flex items-baseline justify-between gap-3 mb-1">
-        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-          <TitleWithIcon title={p.title} icon={p.icon} size="h-[1.1em]" />
-        </p>
-        <span className="text-[0.65rem] text-zinc-400 dark:text-zinc-600 whitespace-nowrap tabular-nums">
-          {p.date}
-        </span>
-      </div>
-      <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400 line-clamp-2">
-        {p.shortDesc}
+      <p className="font-medium text-zinc-900 dark:text-zinc-100 truncate">
+        <TitleWithIcon title={p.title} icon={p.icon} size="h-[1.05em]" />
       </p>
+      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 tabular-nums">
+        {STATUS_LABEL[p.status]} · {p.date}
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 line-clamp-2">{p.shortDesc}</p>
     </>
   ),
 }))
@@ -111,18 +106,13 @@ const PROJECT_PREVIEWS: Preview[] = PROJECTS.filter(p => POSTS.some(post => post
 const COURSE_PREVIEWS: Preview[] = TERMS.flatMap(t =>
   t.courses.map(c => ({
     key: c.code,
-    eyebrow: `${t.term}${t.current ? ' · In progress' : ''}`,
     content: (
       <>
-        <div className="flex items-baseline gap-2.5 mb-1">
-          <span className="font-mono text-xs text-zinc-400 dark:text-zinc-500 flex-shrink-0">
-            {c.code}
-          </span>
-          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{c.name}</p>
-        </div>
-        <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400 line-clamp-2">
-          {c.desc}
+        <p className="font-medium text-zinc-900 dark:text-zinc-100 truncate">{c.name}</p>
+        <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 tabular-nums">
+          {c.code} · {t.term}{t.current ? ', in progress' : ''}
         </p>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 line-clamp-2">{c.desc}</p>
       </>
     ),
   }))
@@ -149,26 +139,15 @@ function shuffled<T>(list: T[]): T[] {
 function photoPreview(photo: Required<Photo>): Preview {
   return {
     key: photo.id,
-    eyebrow: photo.category,
     content: (
-      <div className="flex items-center gap-3">
-        <div
-          className="w-14 h-14 flex-shrink-0 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700"
-          style={{ backgroundColor: photo.prominentColor }}
-        >
-          <img
-            src={photo.url}
-            alt={photo.meta.descriptor}
-            loading="lazy"
-            className="w-full h-full object-cover"
-          />
+      <div className="flex gap-4">
+        <div className="w-20 h-20 flex-shrink-0 overflow-hidden" style={{ backgroundColor: photo.prominentColor }}>
+          <img src={photo.url} alt={photo.meta.descriptor} loading="lazy" className="w-full h-full object-cover" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-            {photo.meta.descriptor}
-          </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-            {[photo.meta.location, photo.meta.date].filter(v => v && v !== 'N/A').join(' · ')}
+          <p className="font-medium text-zinc-900 dark:text-zinc-100 truncate">{photo.meta.descriptor}</p>
+          <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400 truncate">
+            {[photo.category, photo.meta.location, photo.meta.date].filter(v => v && v !== 'N/A').join(' · ')}
           </p>
         </div>
       </div>
@@ -178,13 +157,12 @@ function photoPreview(photo: Required<Photo>): Preview {
 
 const PHOTO_PLACEHOLDER: Preview = {
   key: 'loading',
-  eyebrow: 'Loading',
   content: (
-    <div className="flex items-center gap-3">
-      <div className="w-14 h-14 flex-shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-      <div className="flex-1 flex flex-col gap-1.5">
-        <div className="h-3 w-2/5 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-        <div className="h-3 w-1/4 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+    <div className="flex gap-4" aria-label="Loading photos">
+      <div className="w-20 h-20 flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+      <div className="flex-1 flex flex-col gap-2 pt-1">
+        <div className="h-3.5 w-2/5 bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+        <div className="h-3.5 w-1/4 bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
       </div>
     </div>
   ),
@@ -252,33 +230,28 @@ function PageNav() {
   }
 
   return (
-    // Sits in the left margin of the centred content column, so it only appears
-    // once the viewport is wide enough to have one. Its top lines up with the
-    // headshot: the 56px header plus main's sm:pt-20 = 8.5rem. The right border
-    // runs only as far as the entries do, separating the rail from the content.
-    <nav
-      aria-label="On this page"
-      className="hidden xl:flex fixed z-30 top-[8.5rem] left-[calc(50%-35rem)] w-36 flex-col gap-3.5 pr-4 border-r border-zinc-200 dark:border-zinc-800"
-    >
+    // The frame's left column, from xl up. Its top lines up with the headshot:
+    // the 56px header plus main's sm:pt-20 = 8.5rem.
+    <nav aria-label="On this page" className="hidden xl:flex sticky top-[8.5rem] self-start mt-20 flex-col gap-3">
       {PAGE_SECTIONS.map(({ id, label }) => (
         <button
           key={id}
           onClick={() => jumpTo(id)}
           aria-current={active === id ? 'true' : undefined}
-          className="group flex items-center gap-2.5 text-left cursor-pointer"
+          className="group flex items-center gap-3 text-left text-sm cursor-pointer"
         >
           <span
             className={`h-px transition-all duration-300 ${
               active === id
-                ? 'w-7 bg-zinc-900 dark:bg-zinc-100'
-                : 'w-3.5 bg-zinc-300 dark:bg-zinc-700 group-hover:w-5 group-hover:bg-zinc-400 dark:group-hover:bg-zinc-500'
+                ? 'w-6 bg-zinc-900 dark:bg-zinc-100'
+                : 'w-3 bg-zinc-300 dark:bg-zinc-700 group-hover:w-4.5 group-hover:bg-zinc-500'
             }`}
           />
           <span
-            className={`text-[0.65rem] uppercase tracking-[0.15em] transition-colors ${
+            className={`transition-colors ${
               active === id
                 ? 'text-zinc-900 dark:text-zinc-100'
-                : 'text-zinc-400 dark:text-zinc-600 group-hover:text-zinc-600 dark:group-hover:text-zinc-300'
+                : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
             }`}
           >
             {label}
@@ -289,139 +262,152 @@ function PageNav() {
   )
 }
 
+/** A section's title, sitting on a full-width rule like a catalogue heading. */
+function SectionHeading({ children }: { children: string }) {
+  return (
+    <h2 className="mb-8 border-t border-zinc-900 dark:border-zinc-100 pt-4 font-serif text-3xl tracking-tight text-zinc-900 dark:text-zinc-100">
+      {children}
+    </h2>
+  )
+}
+
 export default function Home() {
   const [photoPreviews, setPhotoPreviews] = useState<Preview[]>([PHOTO_PLACEHOLDER])
   const [projectPreviews] = useState(() => shuffled(PROJECT_PREVIEWS))
   const [coursePreviews] = useState(() => shuffled(COURSE_PREVIEWS))
 
   useEffect(() => {
-    // Same fallback as the Photos page: if the API is unreachable (e.g. CORS
-    // during localhost dev), preview the mock set instead of an empty slot.
+    // Same rule as the Photos page: the mock set only stands in during local
+    // dev. Live, an unreachable API just leaves the card without a preview.
+    const fallback = import.meta.env.DEV ? MOCK_PHOTOS : []
     const toPreviews = (list: Required<Photo>[]) =>
       shuffled(list).slice(0, PHOTO_PREVIEW_COUNT).map(photoPreview)
     loadPhotos()
-      .then(data => setPhotoPreviews(toPreviews(data.length ? data.map(createPhoto) : MOCK_PHOTOS)))
-      .catch(() => setPhotoPreviews(toPreviews(MOCK_PHOTOS)))
+      .then(data => setPhotoPreviews(toPreviews(data.length ? data.map(createPhoto) : fallback)))
+      .catch(() => setPhotoPreviews(toPreviews(fallback)))
   }, [])
 
   return (
-    <>
+    <div className="frame xl:grid xl:grid-cols-[9rem_minmax(0,1fr)] xl:gap-10">
       <PageNav />
-    <main className="max-w-3xl mx-auto px-6 pt-14 pb-16 sm:pt-20">
-      {/* Hero */}
-      <section id="about" className="scroll-mt-20 flex items-center gap-5 mb-8">
-        <img
-          src={profileImg}
-          alt="Profile"
-          className="w-50 h-50 sm:w-40 sm:h-40 rounded-2xl object-cover flex-shrink-0 photo-smooth"
-        />
-        <div>
-          <h1 className="font-serif text-4xl sm:text-5xl leading-tight text-zinc-900 dark:text-zinc-100">
-            Eddie
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-            CompE @ University of Michigan
-          </p>
-        </div>
-      </section>
+      <main className="min-w-0 pt-14 pb-16 sm:pt-20">
+        <section id="about" className="scroll-mt-20 flex items-end gap-6 sm:gap-10 mb-10">
+          <img
+            src={profileImg}
+            alt="Eddie Lai"
+            className="w-32 h-32 sm:w-52 sm:h-52 object-cover flex-shrink-0 photo-smooth"
+          />
+          <div className="min-w-0">
+            <h1 className="font-serif text-6xl sm:text-8xl leading-[0.9] tracking-tight text-zinc-900 dark:text-zinc-100">
+              Eddie
+            </h1>
+            <p className="mt-3 text-zinc-500 dark:text-zinc-400">CompE @ University of Michigan</p>
+          </div>
+        </section>
 
-      <div className="mb-14 flex flex-col gap-4">
-        {BIO_PARAGRAPHS.map((para, i) => (
-          <p key={i} className="text-[0.95rem] leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {para}
-          </p>
-        ))}
-      </div>
-
-      <section id="contacts" className="scroll-mt-20 mb-14">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
-          Contacts
-        </h2>
-        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-          {/* Plain text rather than a mailto link, so it can be copied by anyone
-              without a mail app set up. */}
-          <span className="text-sm text-zinc-500 dark:text-zinc-400 select-all">{EMAIL}</span>
-          {CONTACTS.map(({ label, href }) => (
-            <a
-              key={label}
-              href={href}
-              target={href.startsWith('http') ? '_blank' : undefined}
-              rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-              className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border-b border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500 pb-px"
-            >
-              {label}
-            </a>
+        <div className="mb-20 max-w-[60ch] flex flex-col gap-4">
+          {BIO_PARAGRAPHS.map((para, i) => (
+            <p key={i} className="text-[1.075rem] leading-relaxed text-zinc-700 dark:text-zinc-300">
+              {para}
+            </p>
           ))}
         </div>
-      </section>
 
-      <section id="featured" className="scroll-mt-20 mb-14">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
-          Featured projects
-        </h2>
-        {/* The accent card runs full width on top; the rest sit side by side
-            under it (stacked on a phone), each led by its picture. */}
-        <div className="flex flex-col gap-3">
-          {FEATURED.filter(f => f.accent).map(f => <FeaturedCard key={f.slug} {...f} />)}
-          <div className="grid gap-3 sm:grid-cols-2">
-            {FEATURED.filter(f => !f.accent).map(f => <FeaturedCard key={f.slug} {...f} />)}
+        <section id="contacts" className="scroll-mt-20 mb-20">
+          <SectionHeading>Contacts</SectionHeading>
+          <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
+            {/* Plain text rather than a mailto link, so it can be copied by anyone
+                without a mail app set up. */}
+            <span className="text-zinc-900 dark:text-zinc-100 select-all">{EMAIL}</span>
+            {CONTACTS.map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-600 hover:decoration-current transition-colors"
+              >
+                {label}
+              </a>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Explore — each card rotates through its section's items while idle */}
-      <section id="explore" className="scroll-mt-20 mb-14">
-        <h2 className="text-xs uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-4">
-          Explore
-        </h2>
-        <div className="flex flex-col gap-3">
-          <SectionCard
-            to="/projects"
-            label="Projects"
-            desc="A timeline of things I’ve built"
-            previews={projectPreviews}
-            beat={0}
-          />
-          <SectionCard
-            to="/coursework"
-            label="Coursework"
-            desc="Classes I’ve taken"
-            previews={coursePreviews}
-            beat={1}
-          />
-          <SectionCard
-            to="/photos"
-            label="Photos"
-            desc="A filterable gallery served from my self-hosted photo API"
-            previews={photoPreviews}
-            beat={2}
-          />
-        </div>
-      </section>
+        <section id="featured" className="scroll-mt-20 mb-20">
+          <SectionHeading>Featured projects</SectionHeading>
+          {/* The lead piece runs full width on top; the rest hang side by side
+              under it (stacked on a phone), each led by its picture. */}
+          <div className="flex flex-col gap-16">
+            {FEATURED.filter(f => f.accent).map(f => <FeaturedCard key={f.slug} {...f} />)}
+            <div className="grid gap-x-10 gap-y-16 md:grid-cols-2">
+              {FEATURED.filter(f => !f.accent).map(f => <FeaturedCard key={f.slug} {...f} />)}
+            </div>
+          </div>
+        </section>
 
-      <footer className="mt-16 pt-6 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap justify-between gap-2 text-xs text-zinc-400 dark:text-zinc-600">
-        <span>© 2026 Eddie Lai</span>
-        <span>Last updated: {__BUILD_DATE__}</span>
-      </footer>
-    </main>
-    </>
+        <section id="explore" className="scroll-mt-20 mb-14">
+          <SectionHeading>Explore</SectionHeading>
+          {/* Each column rotates through its section's items while idle. */}
+          <div className="grid gap-x-10 gap-y-14 md:grid-cols-3">
+            <SectionCard to="/projects" label="Projects" desc="A timeline of things I’ve built" previews={projectPreviews} beat={0} />
+            <SectionCard to="/coursework" label="Coursework" desc="Classes I’ve taken" previews={coursePreviews} beat={1} />
+            <SectionCard
+              to="/photos"
+              label="Photos"
+              desc="A filterable gallery served from my self-hosted photo API"
+              previews={photoPreviews}
+              beat={2}
+            />
+          </div>
+        </section>
+
+        <footer className="mt-24 pt-5 border-t border-zinc-200 dark:border-zinc-800 flex flex-wrap justify-between gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <span>© 2026 Eddie Lai</span>
+          <span>Last updated {__BUILD_DATE__}</span>
+        </footer>
+      </main>
+    </div>
   )
 }
 
 function FeaturedCard({ slug, title, highlight, detail, accent, media, project }: (typeof FEATURED)[number]) {
+  const meta = (
+    <div className="flex items-baseline justify-between gap-4 text-sm">
+      <span className="font-medium text-zinc-900 dark:text-zinc-100">{title}</span>
+      <span className="text-zinc-500 dark:text-zinc-400 tabular-nums whitespace-nowrap">{project.date}</span>
+    </div>
+  )
+  const more = (
+    <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
+      Read the write-up
+    </p>
+  )
+  const headline = (size: string) => (
+    <p className={`mt-3 font-serif ${size} leading-[1.08] tracking-tight text-zinc-900 dark:text-zinc-100 text-balance decoration-1 underline-offset-[0.12em] group-hover:underline`}>
+      {highlight}
+    </p>
+  )
+
+  // The lead piece has no picture: its headline is the picture.
+  if (accent) {
+    return (
+      <Link to={`/projects/${slug}`} className="group block lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16 lg:items-end">
+        <div>
+          {meta}
+          {headline('text-4xl sm:text-6xl')}
+        </div>
+        <div>
+          <p className="mt-4 lg:mt-0 max-w-[60ch] text-zinc-600 dark:text-zinc-400 leading-relaxed">{detail}</p>
+          {more}
+        </div>
+      </Link>
+    )
+  }
+
   return (
-    <Link
-      to={`/projects/${slug}`}
-      // The accent card is teal, the same colour as this project's
-      // "deployed" status on the Projects page.
-      className={`group flex flex-col rounded-xl border overflow-hidden hover:shadow-sm transition-all ${
-        accent
-          ? 'border-teal-300 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 hover:border-teal-500 dark:hover:border-teal-600'
-          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
-      }`}
-    >
+    <Link to={`/projects/${slug}`} className="group block">
       {media?.src && (
-        <div className="h-44 bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="mb-5 aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-800">
           <picture>
             {media.still && <source srcSet={media.still} media="(prefers-reduced-motion: reduce)" />}
             <img
@@ -429,33 +415,17 @@ function FeaturedCard({ slug, title, highlight, detail, accent, media, project }
               alt={media.alt}
               loading="lazy"
               decoding="async"
-              className={`w-full h-full ${media.fit === 'cover' ? 'object-cover object-left-top' : 'object-contain'}`}
+              className={`w-full h-full transition-transform duration-700 ease-out group-hover:scale-[1.015] ${
+                media.fit === 'cover' ? 'object-cover object-left-top' : 'object-contain'
+              }`}
             />
           </picture>
         </div>
       )}
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-baseline justify-between gap-3 mb-2">
-          <p className={`text-sm font-medium ${accent ? 'text-teal-800 dark:text-teal-300' : 'text-zinc-800 dark:text-zinc-200'}`}>
-            {title}
-          </p>
-          <span className={`text-[0.65rem] whitespace-nowrap tabular-nums ${accent ? 'text-teal-600 dark:text-teal-500' : 'text-zinc-400 dark:text-zinc-600'}`}>
-            {project.date}
-          </span>
-        </div>
-        <p className={`font-serif text-2xl leading-snug mb-2 ${accent ? 'text-teal-950 dark:text-teal-50' : 'text-zinc-900 dark:text-zinc-100'}`}>
-          {highlight}
-        </p>
-        <p className={`text-sm leading-relaxed ${accent ? 'text-teal-900/75 dark:text-teal-100/70' : 'text-zinc-500 dark:text-zinc-400'}`}>{detail}</p>
-        <p className={`mt-auto pt-3 text-xs transition-colors ${
-          accent
-            ? 'text-teal-700 dark:text-teal-400 group-hover:text-teal-900 dark:group-hover:text-teal-200'
-            : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
-        }`}>
-          Read the write-up{' '}
-          <span className="inline-block group-hover:translate-x-0.5 transition-transform">→</span>
-        </p>
-      </div>
+      {meta}
+      {headline('text-3xl')}
+      <p className="mt-3 max-w-[60ch] text-zinc-600 dark:text-zinc-400 leading-relaxed">{detail}</p>
+      {more}
     </Link>
   )
 }
@@ -486,7 +456,8 @@ function SectionCard({
   const [held, setHeld] = useState(false)
 
   useEffect(() => {
-    if (held || previews.length < 2) return
+    // Content that changes on its own counts as motion too.
+    if (held || previews.length < 2 || matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const t = setInterval(() => setI(n => n + 1), CYCLE_MS + beat * BEAT_MS)
     return () => clearInterval(t)
   }, [held, previews.length, beat])
@@ -500,24 +471,16 @@ function SectionCard({
       onMouseLeave={() => setHeld(false)}
       onFocus={() => setHeld(true)}
       onBlur={() => setHeld(false)}
-      className="group block rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 hover:border-zinc-400 dark:hover:border-zinc-600 hover:shadow-sm transition-all"
+      className="group block"
     >
-      <p className="flex items-center justify-between text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-1">
-        {label}
-        <span className="text-zinc-400 dark:text-zinc-500 group-hover:translate-x-0.5 transition-transform">
-          →
-        </span>
-      </p>
-      <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{desc}</p>
+      <p className="font-serif text-2xl text-zinc-900 dark:text-zinc-100 decoration-1 underline-offset-4 group-hover:underline">{label}</p>
+      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{desc}</p>
 
       {preview && (
-        <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-          {/* Fixed height so a two-line preview and a one-line one leave the card
-              the same size; keyed so each swap replays the slide-in. */}
-          <div key={preview.key} className="preview-swap h-[5.5rem] overflow-hidden">
-            <p className="text-[0.6rem] uppercase tracking-widest text-zinc-400 dark:text-zinc-600 mb-2">
-              {preview.eyebrow}
-            </p>
+        <div className="mt-5 pt-5 border-t border-zinc-200 dark:border-zinc-800">
+          {/* Fixed height so a two-line preview and a one-line one leave the
+              column the same size; keyed so each swap replays the slide-in. */}
+          <div key={preview.key} className="preview-swap h-[6.5rem] overflow-hidden">
             {preview.content}
           </div>
         </div>

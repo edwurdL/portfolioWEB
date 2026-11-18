@@ -18,12 +18,11 @@ renders is either compiled into the bundle or fetched at runtime from `api.eddie
 | --- | --- |
 | Bundle | Bio, project list, coursework, project photos |
 | `GET /api/photos` | Gallery photos with EXIF metadata, category, and prominent colors |
-| `GET /api/projects` | Project records (the page currently renders a local list) |
 | `GET /api/analytics` | Last-24h unique visitors, requests, and bandwidth, proxied from Cloudflare |
 
 The API is an Express server on a Mac mini, reached through a Cloudflare Tunnel and fronted
 by Cloudflare for caching and traffic stats. Photo and analytics calls fail soft: the gallery
-falls back to a built-in mock set so the page still renders, and the analytics tiles show `—`.
+says it is offline (the dev server shows a built-in mock set instead), and the analytics tiles show `—`.
 Cloudflare notifications email me if the Mac mini loses its connection to Cloudflare or the server
 becomes unreachable.
 
@@ -58,11 +57,11 @@ row:
 ## Running locally
 
 ```sh
-npm install
-npm run dev      # vite dev server
-npm run build    # tsc, vite build → docs/, then prerender every page (scripts/prerender.mjs)
-npm run preview  # serve the built output
-npm run diagrams # re-export the UML diagrams in diagrams/ after editing them
+pnpm install
+pnpm dev         # vite dev server
+pnpm build       # tsc, vite build → docs/, then prerender every page (scripts/prerender.mjs)
+pnpm preview     # serve the built output
+pnpm diagrams    # re-export the UML diagrams in diagrams/ after editing them
 ```
 
 Requires Node 20+. The API base URL defaults to `https://api.eddie-lai.com` and can be
@@ -109,11 +108,11 @@ docs/           Build output (what Cloudflare Pages deploys)
 - **Bio** — edit `aboutme.txt` and rebuild.
 - **Projects** — the `PROJECTS` array in `src/pages/Projects.tsx`, newest first.
 - **Coursework** — the `TERMS` array in `src/pages/Coursework.tsx`, newest term first.
-- **Project photos** — drop up to two images into `src/assets/projects/<project>/`; they are
-  picked up automatically. Details in [`src/assets/projects/README.md`](src/assets/projects/README.md).
+- **Project photos** — drop images into `src/assets/projects/<project>/` and place them in the
+  project's post with `<Figure>`. Details in [`src/assets/projects/README.md`](src/assets/projects/README.md).
 - **Gallery photos** — uploaded to the API, not this repo.
 - **Diagrams** — the UML diagrams live in `src/posts/diagrams.tsx` and appear in the
-  "How this website works" post; after editing them, run `npm run diagrams` to refresh the
+  "How this website works" post; after editing them, run `pnpm diagrams` to refresh the
   SVG copies in `diagrams/` that this README shows.
 - **Link previews** — name, one-line summary and per-page titles live in `src/lib/site.ts`.
   The preview image is `public/og-image.png`; after changing the headshot or summary, rerun
@@ -123,6 +122,6 @@ docs/           Build output (what Cloudflare Pages deploys)
 
 - Images are WebP, sized to roughly 2–3× their rendered box so the browser isn't downscaling
   from something huge.
-- Project photos render at their natural aspect ratio and open full-screen on click.
+- Project photos in posts render at their natural aspect ratio and open full-screen on click.
 - The favicon is generated at runtime as an SVG data URI and re-rendered when the theme
   changes.

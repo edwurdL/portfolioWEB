@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "tsc && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "deploy": "npm run build",
     "diagrams": "node scripts/export-diagrams.mjs"
   },
   "devDependencies": {

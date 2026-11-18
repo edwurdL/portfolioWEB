@@ -10,8 +10,8 @@ import PortfolioWebsite from './PortfolioWebsite'
 import Grubblio from './Grubblio'
 
 /**
- * Projects that open as their own page at /projects/<slug> instead of the
- * detail modal. `projectId` matches the entry's id in pages/Projects.tsx,
+ * Projects that open as their own page at /projects/<slug>. `projectId`
+ * matches the entry's id in pages/Projects.tsx,
  * which supplies the title, date, status, tags and links shown above the body.
  * Each slug matches the project's photo folder in src/assets/projects/.
  */

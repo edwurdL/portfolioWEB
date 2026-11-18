@@ -53,13 +53,10 @@ export interface Project {
   category?: ProjectCategory
   date?: string
   shortDesc?: string
-  fullDesc?: string
   tags?: string[]
   status?: ProjectStatus
   repoUrl?: string
   liveUrl?: string
-  /** Screenshots for the detail modal — files live in src/assets/projects/. */
-  images?: string[]
   /**
    * Set for class assignments, e.g. 'EECS 482'. The card is then labelled as
    * coursework and links to that course on the Coursework page.
@@ -67,27 +64,14 @@ export interface Project {
   course?: string
   /** A small icon shown right after the title, e.g. the project's own favicon. */
   icon?: string
+  /** The card's picture on the Projects page, from the project's photo folder. */
+  cover?: string
+  /** A short animated clip shown instead of the cover; the cover is then its still frame. */
+  animated?: string
 }
 
-/** A Projects page entry: every field filled in except the optional course. */
-export type ProjectEntry = Required<Omit<Project, 'course' | 'icon'>> & Pick<Project, 'course' | 'icon'>
-
-export function createProject(p: Partial<Project> & { id: string }): ProjectEntry {
-  return {
-    id:        p.id,
-    title:     p.title     ?? 'Untitled',
-    category:  p.category  ?? 'software',
-    date:      p.date      ?? 'N/A',
-    shortDesc: p.shortDesc ?? 'N/A',
-    fullDesc:  p.fullDesc  ?? 'N/A',
-    tags:      p.tags      ?? [],
-    status:    p.status    ?? 'completed',
-    repoUrl:   p.repoUrl   ?? '',
-    liveUrl:   p.liveUrl   ?? '',
-    images:    p.images    ?? [],
-    course:    p.course,
-  }
-}
+/** A Projects page entry: every field filled in except the optional course, icon and cover. */
+export type ProjectEntry = Required<Omit<Project, 'course' | 'icon' | 'cover' | 'animated'>> & Pick<Project, 'course' | 'icon' | 'cover' | 'animated'>
 
 export function createPhoto(photo: Partial<Photo> & { id: string }): Required<Photo> {
   return {

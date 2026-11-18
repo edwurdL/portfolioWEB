@@ -61,6 +61,8 @@ function page(path, opts) {
 
 const paths = prerenderPaths()
 for (const path of paths) {
+  // A post whose projectId doesn't match a project would ship as "Page not found".
+  if (routeMeta(path).title.startsWith('Page not found')) throw new Error(`No project entry for ${path}`)
   const file = path === '/' ? join(outDir, 'index.html') : join(outDir, path, 'index.html')
   await mkdir(dirname(file), { recursive: true })
   await writeFile(file, page(path))

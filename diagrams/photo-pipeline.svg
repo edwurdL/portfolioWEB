@@ -10,7 +10,7 @@
   --uml-part: #ffffff;
   --uml-accent: #0f766e;
   --uml-bg: #ffffff;
-  font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 .uml text { fill: var(--uml-ink); font-size: 12px; }

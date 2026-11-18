@@ -8,9 +8,9 @@ export default function LeapHandRl() {
   return (
     <>
       <p>
-        This was the summer after my freshman year. The point wasn’t new research: it was to learn
-        Linux, set up a working environment in it, and get a real robotics project running end to end.
-        The project I picked was reinforcement learning on the LEAP Hand.
+        The summer after my freshman year, I wanted to learn Linux, set up a working environment in it,
+        and get a real robotics project running end to end. I picked reinforcement learning on the LEAP
+        Hand.
       </p>
 
       <h2>The LEAP Hand</h2>
@@ -26,8 +26,7 @@ export default function LeapHandRl() {
       <p>
         I didn’t design anything new here. My job was to recreate the research setup so that it ran
         correctly, and that’s where most of the learning happened: working in Linux and ROS 2,
-        setting up virtual environments, and sorting out compatibility between all the pieces so everything ran
-        the way it should. Getting the hand itself working took some debugging too, both in the wiring
+        setting up virtual environments, and getting all the pieces to work together. Getting the hand itself working took some debugging too, both in the wiring
         and in the Python file that runs it.
       </p>
 

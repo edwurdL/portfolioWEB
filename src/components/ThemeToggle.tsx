@@ -1,23 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(() => {
-    // No browser while the page is prerendered; the client re-renders anyway.
-    if (typeof window === 'undefined') return false
-    const saved = localStorage.getItem('theme')
-    if (saved !== null) return saved === 'dark'
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-  })
+  // index.html already applied the saved or system theme; no document while prerendering.
+  const [dark, setDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  )
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
-  }, [dark])
+  // Saved only on click, so visitors who never choose keep following their system.
+  const toggle = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.classList.toggle('dark', next)
+    try { localStorage.setItem('theme', next ? 'dark' : 'light') } catch { /* blocked; not remembered */ }
+  }
 
   return (
     <button
-      onClick={() => setDark(d => !d)}
-      className="ml-1 max-[359px]:ml-0 p-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer transition-colors"
+      onClick={toggle}
+      className="-mr-2 p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 cursor-pointer transition-colors"
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {dark ? <SunIcon /> : <MoonIcon />}
