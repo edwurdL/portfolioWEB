@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadPhotos, loadedPhotos } from '../lib/api'
+import { bandOf } from '../lib/colorBand'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
 import deadfile from '../assets/deadfile.webp'
@@ -8,7 +9,7 @@ import PhotoCube from '../components/PhotoCube'
 
 const CATEGORIES = ['All', 'Animal', 'Landscape', 'Portrait', 'Street', 'Architecture', 'Abstract']
 
-// Must match portfolioAPI/src/lib/colors.ts, which snaps each photo to one of these.
+// One per band in lib/colorBand; a swatch shows every photo whose colour falls in its band.
 const COLOR_SWATCHES = [
   { label: 'Red',     hex: '#dc2626' },
   { label: 'Warm',    hex: '#f97316' },
@@ -152,7 +153,7 @@ export default function Photos() {
   // Memoised so image loads (which update `loaded`/`ratios`) don't re-sort ~600 photos each.
   const filtered = useMemo(() => photos
     .filter(p => category === 'All' || p.category === category)
-    .filter(p => !colorFilter || p.prominentColor === colorFilter) // API snaps colors[0] to a swatch
+    .filter(p => !colorFilter || bandOf(p.prominentColor) === colorFilter)
     .sort((a, b) =>
       (spectrumActive ? hueBucket(a.prominentColor) - hueBucket(b.prominentColor) : 0) ||
       (newestFirst ? timeOf(b) - timeOf(a) : timeOf(a) - timeOf(b))

@@ -2,17 +2,36 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import type { Photo } from '../types'
 
-type Vec = [number, number, number] // R, G, B in a unit cube centred on the origin
+type Vec = [number, number, number] // world x, y, z with z up; the unit cube is centred on the origin
 
-const toVec = (hex: string): Vec => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255 - 0.5) as Vec
-const TICKS = [0, 50, 100, 150, 200, 250]
-const at = (t: number) => t / 255 - 0.5
+// x = red, y = blue, z (up) = green, each 0–255 mapped onto -0.5…0.5.
+const toVec = (hex: string): Vec => [1, 5, 3].map(i => parseInt(hex.slice(i, i + 2), 16) / 255 - 0.5) as Vec
+const ORIGIN: Vec = [-0.5, -0.5, -0.5] // black
+const AXIS_LEN = 1.1 // a little past 255
+const AXES: { dir: number; hex: string; label: string }[] = [
+  { dir: 0, hex: '#ef4444', label: 'R' },
+  { dir: 2, hex: '#22c55e', label: 'G' },
+  { dir: 1, hex: '#3b82f6', label: 'B' },
+]
+const along = (dir: number, len: number): Vec => {
+  const p = [...ORIGIN] as Vec
+  p[dir] += len
+  return p
+}
+
+// Furthest anything drawn gets from the cube's centre: the axis letters.
+const FIT_RADIUS = Math.max(...AXES.map(a => Math.hypot(...along(a.dir, AXIS_LEN + 0.1))))
 
 // Matplotlib's default 3D view: 30° up, azimuth -60°.
 const START_AZIM = -Math.PI / 3, START_ELEV = Math.PI / 6
 const SPIN = 0.15 // radians per second
 
-export default function PhotoCube({ photos, className = '', caption = true }: { photos: Photo[]; className?: string; caption?: boolean }) {
+export default function PhotoCube({ photos, className = '', caption = true }: {
+  photos: Photo[]
+  className?: string
+  /** The line under the plot, with a link to the gallery. */
+  caption?: boolean
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const plotted = photos.filter(p => p.avgColor)
 
@@ -33,7 +52,6 @@ export default function PhotoCube({ photos, className = '', caption = true }: { 
       }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
-      const ink = getComputedStyle(canvas).color // inherited text colour: follows the theme, white in the lightbox
 
       // Orthographic camera: `view` points at the viewer, `right`/`up` span the screen.
       const ca = Math.cos(azim), sa = Math.sin(azim), ce = Math.cos(elev), se = Math.sin(elev)
@@ -42,79 +60,40 @@ export default function PhotoCube({ photos, className = '', caption = true }: { 
       const up: Vec = [-se * ca, -se * sa, ce]
       const dot = (a: Vec, b: Vec) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
-      // Fit the cube into the canvas, with a little room for dots on its edges.
-      const reach = 0.53
-      const corners = [-1, 1].flatMap(x => [-1, 1].flatMap(y => [-1, 1].map(z => [x * reach, y * reach, z * reach] as Vec)))
-      const xs = corners.map(c => dot(c, right)), ys = corners.map(c => dot(c, up))
-      const scale = Math.min(w / (Math.max(...xs) - Math.min(...xs)), h / (Math.max(...ys) - Math.min(...ys)))
-      const midX = (Math.max(...xs) + Math.min(...xs)) / 2, midY = (Math.max(...ys) + Math.min(...ys)) / 2
-      const screen = (p: Vec) => [w / 2 + (dot(p, right) - midX) * scale, h / 2 - (dot(p, up) - midY) * scale] as const
-
+      // Fixed framing: the cube's centre stays mid-canvas and the zoom fits a sphere
+      // holding the cube and axis letters, so turning it never slides or rescales it.
+      const scale = (Math.min(w, h) / 2 - 8) / FIT_RADIUS
+      const screen = (p: Vec) => [w / 2 + dot(p, right) * scale, h / 2 - dot(p, up) * scale] as const
       const line = (a: Vec, b: Vec) => {
         const [x1, y1] = screen(a), [x2, y2] = screen(b)
         ctx.moveTo(x1, y1)
         ctx.lineTo(x2, y2)
       }
 
-      // Back panes: on each axis, the wall on the side away from the viewer.
-      const back = view.map(v => (v > 0 ? -0.5 : 0.5)) as Vec
-      ctx.lineWidth = 1
-      for (let axis = 0; axis < 3; axis++) {
-        const [u, v] = [0, 1, 2].filter(i => i !== axis)
-        const pt = (a: number, b: number) => {
-          const p: Vec = [0, 0, 0]
-          p[axis] = back[axis]; p[u] = a; p[v] = b
-          return p
-        }
-        ctx.beginPath()
-        const quad = [pt(-0.5, -0.5), pt(0.5, -0.5), pt(0.5, 0.5), pt(-0.5, 0.5)].map(screen)
-        quad.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)))
-        ctx.closePath()
-        ctx.fillStyle = ink
-        ctx.globalAlpha = 0.04
-        ctx.fill()
-        ctx.beginPath()
-        for (const t of TICKS) {
-          line(pt(at(t), -0.5), pt(at(t), 0.5))
-          line(pt(-0.5, at(t)), pt(0.5, at(t)))
-        }
-        ctx.strokeStyle = ink
-        ctx.globalAlpha = 0.12
-        ctx.stroke()
-      }
-
-      // Axes in their own colour: the three edges out of the inner corner where
-      // the back panes meet, each running along one channel.
-      const axes: [number, string][] = [[0, '#dc2626'], [1, '#16a34a'], [2, '#2563eb']]
+      // Axes out of the black corner, each in its channel's colour.
       ctx.globalAlpha = 1
-      ctx.lineWidth = 2
-      ctx.lineCap = 'round'
-      for (const [axis, hex] of axes) {
-        const from = [...back] as Vec, to = [...back] as Vec
-        from[axis] = -0.5
-        to[axis] = 0.5
+      ctx.lineWidth = 1.5
+      ctx.font = '600 13px system-ui, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      for (const a of AXES) {
         ctx.beginPath()
-        line(from, to)
-        ctx.strokeStyle = hex
+        line(ORIGIN, along(a.dir, AXIS_LEN))
+        ctx.strokeStyle = a.hex
         ctx.stroke()
+        ctx.fillStyle = a.hex
+        ctx.fillText(a.label, ...screen(along(a.dir, AXIS_LEN + 0.08)))
       }
 
       // Dots, far first so near ones cover them.
       const dots = points.map(p => ({ xy: screen(p.at), depth: dot(p.at, view), hex: p.hex })).sort((a, b) => a.depth - b.depth)
-      const r = Math.max(2, scale * 0.016)
-      ctx.lineWidth = 0.75
+      const r = Math.max(1.5, scale * 0.008)
       for (const d of dots) {
         ctx.beginPath()
         ctx.arc(d.xy[0], d.xy[1], r, 0, Math.PI * 2)
-        ctx.globalAlpha = 0.6
         ctx.fillStyle = d.hex
         ctx.fill()
-        ctx.strokeStyle = d.hex
-        ctx.globalAlpha = 0.9
-        ctx.stroke()
       }
-
-      ctx.globalAlpha = 1
     }
 
     const tick = (now: number) => {
