@@ -1,4 +1,5 @@
 import Figure from './Figure'
+import Note from './Note'
 
 const FOLDER = 'medical-census-dashboard'
 
@@ -6,9 +7,15 @@ export default function MedicalCensusDashboard() {
   return (
     <>
       <p>
-        I built a Tableau dashboard on more than 400,000 state-wide medical census data points. It makes
-        trends easy to see and lets you break them down by demographics and geography.
+        During my summer internship at Blue Cross Blue Shield of Mississippi, I built a Tableau dashboard
+        on more than 400,000 state-wide medical census data points. It makes trends easy to see and lets
+        you break them down by demographics and geography.
       </p>
+
+      <Note>
+        <span className="font-medium">Some data is left out.</span> The screenshots hide details such as
+        field names, and the county map is a placeholder that covers the actual distribution of members.
+      </Note>
 
       <h2>The dashboard</h2>
       <p>

@@ -1,3 +1,4 @@
+import Note from './Note'
 import Figure from './Figure'
 import Chart from './Chart'
 // Charts copied from HAILIB's autotune docs (docs/html/autotune_*.svg).
@@ -14,15 +15,11 @@ const FOLDER = 'robot-controls-library'
 export default function RobotControlsLibrary() {
   return (
     <>
-      {/* Remove once the library and this write-up are finished. A ruled aside,
-          quieter than the text it introduces. */}
-      <div
-        role="note"
-        className="mb-10 border-b border-zinc-300 dark:border-zinc-700 pb-4 text-[0.95rem] text-zinc-600 dark:text-zinc-400"
-      >
+      {/* Remove once the library and this write-up are finished. */}
+      <Note>
         <span className="font-medium">Work in progress.</span> This library is still being developed, so
         some of the writing, videos, and pictures here may be incomplete.
-      </div>
+      </Note>
 
       <p>
         My team has previously used LemLib, a public motion-control library for VEX V5 robots developed

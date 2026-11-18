@@ -1,3 +1,4 @@
+import Note from './Note'
 import Figure, { FigureRow } from './Figure'
 import { GrubblioDataDiagram, GrubblioDeploymentDiagram, GrubblioPhotosDiagram } from './diagrams'
 
@@ -16,14 +17,10 @@ export default function Grubblio() {
         are still being tuned.
       </p>
 
-      {/* Styled to match the robot post's work-in-progress note. */}
-      <div
-        role="note"
-        className="mb-10 border-b border-zinc-300 dark:border-zinc-700 pb-4 text-[0.95rem] text-zinc-600 dark:text-zinc-400"
-      >
+      <Note>
         <span className="font-medium">Screenshots from November 17, 2026.</span> The game is still changing, so if
         you play it after that date, it may not look or play exactly like the pictures and clips here.
-      </div>
+      </Note>
 
       <Figure
         folder={FOLDER}
