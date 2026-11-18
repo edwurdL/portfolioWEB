@@ -378,7 +378,7 @@ export default function Home() {
             ))}
           </div>
           <div className="relative mt-10 h-72 lg:mt-0 lg:h-auto">
-            <PhotoCube photos={photos} className="absolute inset-x-0 top-0 bottom-0 lg:bottom-8" />
+            <PhotoCube photos={photos} className="absolute inset-x-0 top-0 bottom-0 lg:-top-4 lg:bottom-6" />
           </div>
         </div>
 

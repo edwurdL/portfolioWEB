@@ -7,7 +7,8 @@ type Vec = [number, number, number] // world x, y, z with z up; the unit cube is
 // x = red, y = blue, z (up) = green, each 0–255 mapped onto -0.5…0.5.
 const toVec = (hex: string): Vec => [1, 5, 3].map(i => parseInt(hex.slice(i, i + 2), 16) / 255 - 0.5) as Vec
 const ORIGIN: Vec = [-0.5, -0.5, -0.5] // black
-const AXIS_LEN = 1.1 // a little past 255
+const AXIS_LEN = 1.05 // a little past 255
+const LETTER_AT = AXIS_LEN + 0.07 // axis letters just beyond the line ends
 const AXES: { dir: number; hex: string; label: string }[] = [
   { dir: 0, hex: '#ef4444', label: 'R' },
   { dir: 2, hex: '#22c55e', label: 'G' },
@@ -19,8 +20,17 @@ const along = (dir: number, len: number): Vec => {
   return p
 }
 
-// Furthest anything drawn gets from the cube's center: the axis letters.
-const FIT_RADIUS = Math.max(...AXES.map(a => Math.hypot(...along(a.dir, AXIS_LEN + 0.1))))
+// Everything drawn: the cube's corners (all dots sit inside it) and the axis letters.
+const FIT_POINTS: Vec[] = [
+  ...[-0.5, 0.5].flatMap(x => [-0.5, 0.5].flatMap(y => [-0.5, 0.5].map(z => [x, y, z] as Vec))),
+  ...AXES.map(a => along(a.dir, LETTER_AT)),
+]
+// Spinning is round the vertical axis, so sideways the plot never reaches past the
+// widest point's distance from that axis; tilting can bring any point to the top or
+// bottom, so vertically it needs the full distance from the center.
+const FIT_SIDE = Math.max(...FIT_POINTS.map(([x, y]) => Math.hypot(x, y)))
+const FIT_RADIUS = Math.max(...FIT_POINTS.map(p => Math.hypot(...p)))
+const FIT_PAD = 8 // px, so the letters don't touch the edge
 
 // Matplotlib's default 3D view: 30° up, azimuth -60°.
 const START_AZIM = -Math.PI / 3, START_ELEV = Math.PI / 6
@@ -60,9 +70,9 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
       const up: Vec = [-se * ca, -se * sa, ce]
       const dot = (a: Vec, b: Vec) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
-      // Fixed framing: the cube's center stays mid-canvas and the zoom fits a sphere
-      // holding the cube and axis letters, so turning it never slides or rescales it.
-      const scale = (Math.min(w, h) / 2 - 8) / FIT_RADIUS
+      // Fixed framing: the cube's center stays mid-canvas and the zoom fits every
+      // angle the plot can reach, so turning it never slides or rescales it.
+      const scale = Math.min((w / 2 - FIT_PAD) / FIT_SIDE, (h / 2 - FIT_PAD) / FIT_RADIUS)
       const screen = (p: Vec) => [w / 2 + dot(p, right) * scale, h / 2 - dot(p, up) * scale] as const
       const line = (a: Vec, b: Vec) => {
         const [x1, y1] = screen(a), [x2, y2] = screen(b)
@@ -82,7 +92,7 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
         ctx.strokeStyle = a.hex
         ctx.stroke()
         ctx.fillStyle = a.hex
-        ctx.fillText(a.label, ...screen(along(a.dir, AXIS_LEN + 0.08)))
+        ctx.fillText(a.label, ...screen(along(a.dir, LETTER_AT)))
       }
 
       // Dots, far first so near ones cover them.
@@ -158,8 +168,9 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
         // pan-y: a vertical swipe still scrolls the page on a phone; sideways turns the plot.
         className="block w-full flex-1 min-h-0 cursor-grab active:cursor-grabbing touch-pan-y"
       />
-      {caption && <figcaption className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-        {plotted.length ? `${plotted.length} photos` : 'Photos'} by average color. Drag to turn.{' '}
+      {/* One line, never wrapping: phones drop "by average color" to make room. */}
+      {caption && <figcaption className="mt-1.5 text-xs whitespace-nowrap overflow-hidden text-ellipsis text-zinc-500 dark:text-zinc-400">
+        {plotted.length ? `${plotted.length} photos` : 'Photos'}<span className="hidden sm:inline"> by average color</span>{' · '}
         <Link to="/photos" className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-600 hover:decoration-current">Gallery</Link>
         {' · '}Inspired by{' '}
         <a href="https://joshg.us/colormap.html" target="_blank" rel="noopener noreferrer" className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-600 hover:decoration-current">joshg.us</a>
