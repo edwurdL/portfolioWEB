@@ -10,6 +10,7 @@ import { PROJECTS, STATUS_LABEL, TitleWithIcon } from './Projects'
 import { POSTS, postBySlug, postForProject } from '../posts'
 import { TERMS, courseAnchor } from './Coursework'
 import { MOCK as MOCK_PHOTOS } from './Photos'
+import PhotoCube from '../components/PhotoCube'
 // Bio text lives in /aboutme.txt at the project root — edit that file and
 // rebuild; blank lines between blocks render as separate paragraphs.
 import bioText from '../../aboutme.txt?raw'
@@ -326,6 +327,7 @@ function SectionHeading({ children }: { children: string }) {
 
 export default function Home() {
   const [photoPreviews, setPhotoPreviews] = useState<Preview[]>([PHOTO_PLACEHOLDER])
+  const [photos, setPhotos] = useState<Photo[]>([])
   const [projectPreviews] = useState(() => shuffled(PROJECT_PREVIEWS))
   const [coursePreviews] = useState(() => shuffled(COURSE_PREVIEWS))
 
@@ -336,8 +338,11 @@ export default function Home() {
     const toPreviews = (list: Required<Photo>[]) =>
       shuffled(list).slice(0, PHOTO_PREVIEW_COUNT).map(photoPreview)
     loadPhotos()
-      .then(data => setPhotoPreviews(toPreviews(data.length ? data.map(createPhoto) : fallback)))
-      .catch(() => setPhotoPreviews(toPreviews(fallback)))
+      .then(data => (data.length ? data.map(createPhoto) : fallback), () => fallback)
+      .then(list => {
+        setPhotos(list)
+        setPhotoPreviews(toPreviews(list))
+      })
   }, [])
 
   return (
@@ -361,12 +366,20 @@ export default function Home() {
           <NowPanel />
         </section>
 
-        <div className="mb-20 max-w-[60ch] flex flex-col gap-4">
-          {BIO_PARAGRAPHS.map((para, i) => (
-            <p key={i} className="text-[1.075rem] leading-relaxed text-zinc-700 dark:text-zinc-300">
-              {para}
-            </p>
-          ))}
+        {/* The plot fills the blank beside the bio and the gap under it. It is
+            absolutely positioned on wide screens, so the bio alone sets the row
+            height and the plot can never push the page around. */}
+        <div className="mb-20 lg:mb-0 lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-12">
+          <div className="max-w-[60ch] flex flex-col gap-4 lg:pb-20">
+            {BIO_PARAGRAPHS.map((para, i) => (
+              <p key={i} className="text-[1.075rem] leading-relaxed text-zinc-700 dark:text-zinc-300">
+                {para}
+              </p>
+            ))}
+          </div>
+          <div className="relative mt-10 h-72 lg:mt-0 lg:h-auto">
+            <PhotoCube photos={photos} className="absolute inset-x-0 top-0 bottom-0 lg:bottom-8" />
+          </div>
         </div>
 
         <section id="featured" className="scroll-mt-20 mb-20">

@@ -3,6 +3,8 @@ import { loadPhotos, loadedPhotos } from '../lib/api'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
 import deadfile from '../assets/deadfile.webp'
+import Lightbox from '../components/Lightbox'
+import PhotoCube from '../components/PhotoCube'
 
 const CATEGORIES = ['All', 'Animal', 'Landscape', 'Portrait', 'Street', 'Architecture', 'Abstract']
 
@@ -51,7 +53,7 @@ export const MOCK: Required<Photo>[] = [
   { id:'28', url:deadfile, ratio:'2/3',  category:'Portrait',     prominentColor:'#1c1917', meta:{ camera:'Sony A7IV', lens:'50mm f/1.2',  focalLength:'50mm',  shutterSpeed:'1/50s',   aperture:'f/1.4', iso:3200, date:'2022-08-14', location:'Detroit, MI',        descriptor:'Low key study' } },
   { id:'29', url:deadfile, ratio:'4/3',  category:'Animal',       prominentColor:'#16a34a', meta:{ camera:'Sony A7IV', lens:'400mm f/5.6', focalLength:'400mm', shutterSpeed:'1/2500s', aperture:'f/5.6', iso:800,  date:'2022-07-22', location:'Kalamazoo, MI',      descriptor:'Monarch on milkweed' } },
   { id:'30', url:deadfile, ratio:'3/4',  category:'Abstract',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'100mm macro', focalLength:'100mm', shutterSpeed:'1/320s',  aperture:'f/16', iso:640,  date:'2022-06-03', location:'Studio',             descriptor:'Rust texture' } },
-]
+].map(createPhoto)
 
 /** Hue in 10° steps (0–36) so near-equal hues sort by date; greys get 37, after every colour. */
 function hueBucket(hex: string): number {
@@ -108,6 +110,7 @@ export default function Photos() {
   const [colorFilter, setColorFilter] = useState<string | null>(null)
   const [newestFirst, setNewestFirst] = useState(true)
   const [spectrumActive, setSpectrumActive] = useState(false)
+  const [plotOpen, setPlotOpen] = useState(false)
   const [selected, setSelected] = useState<Required<Photo> | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [ratios, setRatios] = useState<Record<string, string>>({})
@@ -227,6 +230,17 @@ export default function Photos() {
             )}
           </div>
 
+          <button
+            onClick={() => setPlotOpen(true)}
+            disabled={loading}
+            className={`flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-default ${toggleClass(false)}`}
+          >
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            Colour plot
+          </button>
+
           {!loading && (
             <p className="ml-auto text-zinc-500 dark:text-zinc-400 tabular-nums">
               {filtered.length} {filtered.length === 1 ? 'photo' : 'photos'}
@@ -234,6 +248,23 @@ export default function Photos() {
           )}
         </div>
       </div>
+
+      {plotOpen && (
+        <Lightbox
+          label="Colour plot"
+          caption={`${filtered.length} ${filtered.length === 1 ? 'photo' : 'photos'} by average colour. Drag to turn.`}
+          onClose={() => setPlotOpen(false)}
+        >
+          {/* Stop clicks here so dragging the plot doesn't close the lightbox. */}
+          <div
+            onClick={e => e.stopPropagation()}
+            className="text-white cursor-default"
+            style={{ width: 'min(calc(100vw - 2rem), calc(var(--lightbox-h) * 4 / 3))', height: 'var(--lightbox-h)' }}
+          >
+            <PhotoCube photos={filtered} caption={false} className="w-full h-full" />
+          </div>
+        </Lightbox>
+      )}
 
       {/* Masonry grid */}
       <main className="frame pt-6 pb-20">

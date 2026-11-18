@@ -19,6 +19,7 @@ interface ApiPhoto {
   category: string | null
   tags: string[]
   colors: string[]
+  avgColor?: string | null // missing on API builds before the avgColor migration
   dateTaken: string | null
   camera: string | null
   iso: number | null
@@ -39,6 +40,7 @@ function mapPhoto(p: ApiPhoto): Photo {
     url: `${API_BASE}${p.url}`,
     category: p.category ? capitalize(p.category) : undefined,
     prominentColor: p.colors?.[0],
+    avgColor: p.avgColor ?? undefined,
     meta: {
       camera: p.camera ?? undefined,
       lens: p.lens ?? undefined,

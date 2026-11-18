@@ -25,6 +25,8 @@ export interface Photo {
   ratio?: string
   category?: string
   prominentColor?: string
+  /** Unsnapped mean colour of the frame, for the RGB plot. */
+  avgColor?: string
   meta?: PhotoMeta
 }
 
@@ -80,6 +82,7 @@ export function createPhoto(photo: Partial<Photo> & { id: string }): Required<Ph
     ratio:          photo.ratio          ?? '1/1',
     category:       photo.category       ?? 'Uncategorized',
     prominentColor: photo.prominentColor ?? '#71717a',
+    avgColor:       photo.avgColor ?? photo.prominentColor ?? '#71717a',
     meta:           createPhotoMeta(photo.meta),
   }
 }
