@@ -9,7 +9,7 @@ import PhotoCube from '../components/PhotoCube'
 
 const CATEGORIES = ['All', 'Animal', 'Landscape', 'Portrait', 'Street', 'Architecture', 'Abstract']
 
-// One per band in lib/colorBand; a swatch shows every photo whose colour falls in its band.
+// One per band in lib/colorBand; a swatch shows every photo whose color falls in its band.
 const COLOR_SWATCHES = [
   { label: 'Red',     hex: '#dc2626' },
   { label: 'Warm',    hex: '#f97316' },
@@ -56,7 +56,7 @@ export const MOCK: Required<Photo>[] = [
   { id:'30', url:deadfile, ratio:'3/4',  category:'Abstract',     prominentColor:'#f97316', meta:{ camera:'Sony A7IV', lens:'100mm macro', focalLength:'100mm', shutterSpeed:'1/320s',  aperture:'f/16', iso:640,  date:'2022-06-03', location:'Studio',             descriptor:'Rust texture' } },
 ].map(createPhoto)
 
-/** Hue in 10° steps (0–36) so near-equal hues sort by date; greys get 37, after every colour. */
+/** Hue in 10° steps (0–36) so near-equal hues sort by date; grays get 37, after every color. */
 function hueBucket(hex: string): number {
   const r = parseInt(hex.slice(1,3),16)/255
   const g = parseInt(hex.slice(3,5),16)/255
@@ -132,7 +132,7 @@ export default function Photos() {
     setTimeout(() => setSelected(null), 250)
   }
 
-  // Same behaviour as components/Lightbox: page locked, Escape closes, focus
+  // Same behavior as components/Lightbox: page locked, Escape closes, focus
   // moves to the close button and returns to the tile afterwards.
   const closeRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -150,7 +150,7 @@ export default function Photos() {
     }
   }, [selected])
 
-  // Memoised so image loads (which update `loaded`/`ratios`) don't re-sort ~600 photos each.
+  // Memoized so image loads (which update `loaded`/`ratios`) don't re-sort ~600 photos each.
   const filtered = useMemo(() => photos
     .filter(p => category === 'All' || p.category === category)
     .filter(p => !colorFilter || bandOf(p.prominentColor) === colorFilter)
@@ -207,10 +207,10 @@ export default function Photos() {
               className="block w-6 h-1.5"
               style={{ background: 'linear-gradient(to right, #dc2626, #f97316, #ca8a04, #16a34a, #0891b2, #2563eb, #7c3aed)' }}
             />
-            By colour
+            By color
           </button>
 
-          <div role="group" aria-label="Filter by colour" className="flex items-center gap-1.5">
+          <div role="group" aria-label="Filter by color" className="flex items-center gap-1.5">
             {COLOR_SWATCHES.map(s => (
               <button
                 key={s.label}
@@ -239,7 +239,7 @@ export default function Photos() {
             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
             </svg>
-            Colour plot
+            Color plot
           </button>
 
           {!loading && (
@@ -252,8 +252,8 @@ export default function Photos() {
 
       {plotOpen && (
         <Lightbox
-          label="Colour plot"
-          caption={`${filtered.length} ${filtered.length === 1 ? 'photo' : 'photos'} by average colour. Drag to turn.`}
+          label="Color plot"
+          caption={`${filtered.length} ${filtered.length === 1 ? 'photo' : 'photos'} by average color. Drag to turn. Inspired by joshg.us/colormap.html`}
           onClose={() => setPlotOpen(false)}
         >
           {/* Stop clicks here so dragging the plot doesn't close the lightbox. */}
@@ -300,7 +300,7 @@ export default function Photos() {
                   onClick={() => setSelected(photo)}
                 >
                   {/* Until it arrives the tile shows the photo's own prominent
-                      colour; the image then fades in over it. */}
+                      color; the image then fades in over it. */}
                   <div
                     className="w-full overflow-hidden"
                     style={{ aspectRatio: ratios[photo.id] ?? photo.ratio, backgroundColor: photo.prominentColor }}
@@ -365,7 +365,7 @@ export default function Photos() {
                   </div>
                 ))}
                 <div className="col-span-2 flex items-center gap-2">
-                  <dt className="text-zinc-500">Colour</dt>
+                  <dt className="text-zinc-500">Color</dt>
                   <dd className="w-4 h-4 border border-white/20" style={{ backgroundColor: selected.prominentColor }}><span className="sr-only">{selected.prominentColor}</span></dd>
                 </div>
               </dl>

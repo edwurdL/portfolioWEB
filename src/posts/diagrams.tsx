@@ -3,7 +3,7 @@ import { VectorFigure } from './Chart'
 
 /*
  * UML diagrams for the "How this website works" post, drawn as inline SVG so
- * they follow the site's light/dark theme (colours come from the .uml rules in
+ * they follow the site's light/dark theme (colors come from the .uml rules in
  * style.css) and stay sharp at any size. Each sits in a VectorFigure, which
  * scrolls it sideways on a phone and enlarges it on click.
  */
@@ -137,7 +137,7 @@ export function SiteDeploymentDiagram() {
   )
 }
 
-/** A rounded UML action box with one or more centred lines (the first in bold). */
+/** A rounded UML action box with one or more centered lines (the first in bold). */
 function Action({ cx, y, w, h, lines }: { cx: number; y: number; w: number; h: number; lines: string[] }) {
   const top = y + h / 2 - ((lines.length - 1) * 15) / 2 + 4
   return (
@@ -291,9 +291,9 @@ export function PhotoModelDiagram() {
         <title id="model-title">The photo data model</title>
         <desc id="model-desc">
           On the Mac mini, Prisma’s Photo model in PostgreSQL holds an id, filename, url, description, category, tags, colors
-          (the real colour of each of the photo’s main colour bands), an optional average colour, optional EXIF fields (date taken, camera, ISO, shutter, aperture, lens, focal length) and a creation time. GET
+          (the real color of each of the photo’s main color bands), an optional average color, optional EXIF fields (date taken, camera, ISO, shutter, aperture, lens, focal length) and a creation time. GET
           /api/photos returns these rows as JSON, and the site’s mapPhoto function turns each into its own Photo type, taking
-          the first colour as prominentColor and keeping avgColor, whose meta field holds a PhotoMeta with the camera settings, date and description.
+          the first color as prominentColor and keeping avgColor, whose meta field holds a PhotoMeta with the camera settings, date and description.
         </desc>
         <Markers id="cls" />
 
@@ -399,8 +399,8 @@ export function PhotoPipelineDiagram() {
           Tailscale network. A chokidar watcher on that folder fires once a file has stopped changing for two seconds, and
           queues it if it is a .jpg or .jpeg. The queue hands files to processPhoto one at a time. For each, processPhoto checks
           PostgreSQL for an existing entry; if one exists it deletes the original and skips it. Otherwise it reads the EXIF
-          data with exifr, uses sharp to find the real colour of each of its top five colour bands and the frame’s average
-          colour, asks Ollama’s llava model for a description, category and
+          data with exifr, uses sharp to find the real color of each of its top five color bands and the frame’s average
+          color, asks Ollama’s llava model for a description, category and
           tags, encodes a WebP of at most 350 KB into ~/photos/processed, deletes the original, and creates the photo’s row in
           PostgreSQL.
         </desc>
@@ -443,7 +443,7 @@ export function PhotoPipelineDiagram() {
         <text className="muted halo" x={170} y={378}>[new photo]</text>
 
         {self(PROC, 392, 'exifr: read EXIF')}
-        {self(PROC, 428, 'sharp: band colours · average')}
+        {self(PROC, 428, 'sharp: band colors · average')}
 
         {call(PROC + 5, OLLAMA, 482, 'describe · categorize · tag')}
         {reply(OLLAMA, PROC + 5, 506, 'JSON')}
@@ -636,7 +636,7 @@ export function GrubblioDataDiagram() {
 
 /**
  * Activity diagram of the dish photos, from fetching on my machine to being
- * served by the live Worker. Pixabay's licence forbids redistributing its raw
+ * served by the live Worker. Pixabay's license forbids redistributing its raw
  * files, so those photos stay out of git and a GitHub-triggered build
  * re-downloads them; Wikimedia Commons photos are committed.
  */
@@ -650,7 +650,7 @@ export function GrubblioPhotosDiagram() {
         <desc id="grub-photo-desc">
           On my machine, npm run fetch-images searches Pixabay, or Wikimedia Commons with --source commons, using hand-picked
           Commons files for dishes where Pixabay had nothing usable, and saves each photo as assets/dishes/(dish id).jpg, recording its credit and source page in credits.json. Pushing to GitHub stores
-          credits.json and the 195 Commons photos; the 235 Pixabay photos are git-ignored, because Pixabay’s licence forbids
+          credits.json and the 195 Commons photos; the 235 Pixabay photos are git-ignored, because Pixabay’s license forbids
           redistributing the raw files. A GitHub-triggered Cloudflare build runs fetch-images --restore, which re-downloads
           exactly the Pixabay photos named in credits.json using the Pixabay API key, then npm run build copies the photos into
           the site under /images/. The live Worker serves /images/(dish id).jpg as static files, with the credit from

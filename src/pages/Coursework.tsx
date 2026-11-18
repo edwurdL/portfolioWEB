@@ -20,7 +20,7 @@ export const courseAnchor = (code: string) => code.toLowerCase().replace(/\s+/g,
 
 interface Term {
   term: string
-  /** The term under way right now; labelled "In progress". */
+  /** The term under way right now; labeled "In progress". */
   current?: boolean
   courses: Course[]
 }

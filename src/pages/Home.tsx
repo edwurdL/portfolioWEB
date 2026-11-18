@@ -316,7 +316,7 @@ function NowPanel() {
   )
 }
 
-/** A section's title, sitting on a full-width rule like a catalogue heading. */
+/** A section's title, sitting on a full-width rule like a catalog heading. */
 function SectionHeading({ children }: { children: string }) {
   return (
     <h2 className="mb-8 border-t border-zinc-900 dark:border-zinc-100 pt-4 font-serif text-3xl tracking-tight text-zinc-900 dark:text-zinc-100">

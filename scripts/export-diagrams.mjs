@@ -4,9 +4,9 @@
 //
 //   pnpm diagrams
 //
-// On the site the diagrams take their colours from the .uml rules in
+// On the site the diagrams take their colors from the .uml rules in
 // src/style.css. A standalone SVG can't see that stylesheet, so each file gets
-// those rules embedded, with dark-mode colours under prefers-color-scheme and a
+// those rules embedded, with dark-mode colors under prefers-color-scheme and a
 // solid background so it stays readable on either GitHub theme.
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -32,7 +32,7 @@ const start = css.indexOf('/* UML diagrams')
 if (start < 0) throw new Error('UML block not found in src/style.css')
 let rules = css.slice(start)
 const dark = rules.match(/html\.dark \.uml \{[^}]*\}/)
-if (!dark) throw new Error('Dark-mode UML colours not found in src/style.css')
+if (!dark) throw new Error('Dark-mode UML colors not found in src/style.css')
 rules = rules
   .replace(dark[0], '')
   .replace('font-family: var(--font-sans);', "font-family: 'Schibsted Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;")

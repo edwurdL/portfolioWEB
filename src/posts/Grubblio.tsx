@@ -93,7 +93,7 @@ export default function Grubblio() {
       </p>
       <p>
         Licensing decides what the repository holds. The 195 Commons photos are committed, since their
-        Creative Commons licences allow redistribution. Pixabay’s licence forbids redistributing the raw
+        Creative Commons licenses allow redistribution. Pixabay’s license forbids redistributing the raw
         files, so the 235 Pixabay photos are kept out of git, and a build triggered from GitHub
         re-downloads exactly the ones named in <code>credits.json</code> with my Pixabay API key.
         Deploying from my own machine skips that step and uses the photos already on disk.

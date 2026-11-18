@@ -52,9 +52,9 @@ a {
   text-decoration-thickness: 1px;
 }
 
-/* Every element eases its colours so flipping the theme fades rather than
+/* Every element eases its colors so flipping the theme fades rather than
    flashes. This lives in the base layer on purpose: unlayered, it would beat
-   Tailwind's own transition utilities — and since it names only the colour
+   Tailwind's own transition utilities — and since it names only the color
    properties, anything transitioning width, translate or transform (the
    header's Home slide, the card arrows, the rail's markers) would snap. */
 @layer base {
@@ -102,7 +102,7 @@ img {
   }
 }
 
-/* UML diagrams in project posts (src/posts/diagrams.tsx). Colours are set here
+/* UML diagrams in project posts (src/posts/diagrams.tsx). Colors are set here
    once, for both themes, so the SVG markup only names roles. */
 .uml {
   --uml-ink: #27272a;

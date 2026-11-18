@@ -5,7 +5,7 @@ import { projectPhoto } from '../lib/projectPhotos'
 import { postForProject } from '../posts'
 import { courseAnchor, PRIVATE_CODE_NOTE } from './Coursework'
 
-/** How each status reads on a card: plain words, no colour coding. */
+/** How each status reads on a card: plain words, no color coding. */
 export const STATUS_LABEL: Record<ProjectStatus, string> = {
   'completed':   'Completed',
   'in-progress': 'In progress',

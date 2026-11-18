@@ -5,7 +5,7 @@ import Lightbox from '../components/Lightbox'
 /**
  * A chart inside a project post: an SVG's markup, inlined rather than loaded
  * through <img> so the page's theme reaches it. The HAILIB autotune charts
- * colour everything through CSS variables (--grid, --ink, --s1 ...) with
+ * color everything through CSS variables (--grid, --ink, --s1 ...) with
  * light-mode fallbacks, so the wrapper only has to supply dark-mode values.
  */
 export default function Chart({ svg, caption }: { svg: string; caption?: string }) {

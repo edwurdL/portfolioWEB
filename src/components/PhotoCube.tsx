@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import type { Photo } from '../types'
 
-type Vec = [number, number, number] // world x, y, z with z up; the unit cube is centred on the origin
+type Vec = [number, number, number] // world x, y, z with z up; the unit cube is centered on the origin
 
 // x = red, y = blue, z (up) = green, each 0–255 mapped onto -0.5…0.5.
 const toVec = (hex: string): Vec => [1, 5, 3].map(i => parseInt(hex.slice(i, i + 2), 16) / 255 - 0.5) as Vec
@@ -19,7 +19,7 @@ const along = (dir: number, len: number): Vec => {
   return p
 }
 
-// Furthest anything drawn gets from the cube's centre: the axis letters.
+// Furthest anything drawn gets from the cube's center: the axis letters.
 const FIT_RADIUS = Math.max(...AXES.map(a => Math.hypot(...along(a.dir, AXIS_LEN + 0.1))))
 
 // Matplotlib's default 3D view: 30° up, azimuth -60°.
@@ -60,7 +60,7 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
       const up: Vec = [-se * ca, -se * sa, ce]
       const dot = (a: Vec, b: Vec) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 
-      // Fixed framing: the cube's centre stays mid-canvas and the zoom fits a sphere
+      // Fixed framing: the cube's center stays mid-canvas and the zoom fits a sphere
       // holding the cube and axis letters, so turning it never slides or rescales it.
       const scale = (Math.min(w, h) / 2 - 8) / FIT_RADIUS
       const screen = (p: Vec) => [w / 2 + dot(p, right) * scale, h / 2 - dot(p, up) * scale] as const
@@ -70,7 +70,7 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
         ctx.lineTo(x2, y2)
       }
 
-      // Axes out of the black corner, each in its channel's colour.
+      // Axes out of the black corner, each in its channel's color.
       ctx.globalAlpha = 1
       ctx.lineWidth = 1.5
       ctx.font = '600 13px system-ui, sans-serif'
@@ -159,8 +159,10 @@ export default function PhotoCube({ photos, className = '', caption = true }: {
         className="block w-full flex-1 min-h-0 cursor-grab active:cursor-grabbing touch-pan-y"
       />
       {caption && <figcaption className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-        {plotted.length ? `${plotted.length} photos` : 'Photos'} by average colour. Drag to turn.{' '}
+        {plotted.length ? `${plotted.length} photos` : 'Photos'} by average color. Drag to turn.{' '}
         <Link to="/photos" className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-600 hover:decoration-current">Gallery</Link>
+        {' · '}Inspired by{' '}
+        <a href="https://joshg.us/colormap.html" target="_blank" rel="noopener noreferrer" className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-600 hover:decoration-current">joshg.us</a>
       </figcaption>}
     </figure>
   )

@@ -25,7 +25,7 @@ export interface Photo {
   ratio?: string
   category?: string
   prominentColor?: string
-  /** Unsnapped mean colour of the frame, for the RGB plot. */
+  /** Unsnapped mean color of the frame, for the RGB plot. */
   avgColor?: string
   meta?: PhotoMeta
 }
@@ -60,7 +60,7 @@ export interface Project {
   repoUrl?: string
   liveUrl?: string
   /**
-   * Set for class assignments, e.g. 'EECS 482'. The card is then labelled as
+   * Set for class assignments, e.g. 'EECS 482'. The card is then labeled as
    * coursework and links to that course on the Coursework page.
    */
   course?: string
