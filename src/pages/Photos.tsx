@@ -6,6 +6,7 @@ import deadfile from '../assets/deadfile.webp'
 
 const CATEGORIES = ['All', 'Animal', 'Landscape', 'Portrait', 'Street', 'Architecture', 'Abstract']
 
+// Must match portfolioAPI/src/lib/colors.ts, which snaps each photo to one of these.
 const COLOR_SWATCHES = [
   { label: 'Red',     hex: '#dc2626' },
   { label: 'Warm',    hex: '#f97316' },
@@ -65,11 +66,6 @@ function hueBucket(hex: string): number {
   else if (max === g) h = ((b-r)/d + 2)/6
   else h = ((r-g)/d + 4)/6
   return Math.round(h * 36)
-}
-
-function colorDistance(a: string, b: string): number {
-  const p = (h: string, i: number) => parseInt(h.slice(1+i*2, 3+i*2), 16)
-  return Math.sqrt([0,1,2].reduce((s,i) => s + (p(a,i)-p(b,i))**2, 0))
 }
 
 const SKELETON_RATIOS = ['3/4', '1/1', '4/5', '2/3', '16/9', '3/4', '1/1', '4/5']
@@ -153,7 +149,7 @@ export default function Photos() {
   // Memoised so image loads (which update `loaded`/`ratios`) don't re-sort ~600 photos each.
   const filtered = useMemo(() => photos
     .filter(p => category === 'All' || p.category === category)
-    .filter(p => !colorFilter || colorDistance(p.prominentColor, colorFilter) < 120)
+    .filter(p => !colorFilter || p.prominentColor === colorFilter) // API snaps colors[0] to a swatch
     .sort((a, b) =>
       (spectrumActive ? hueBucket(a.prominentColor) - hueBucket(b.prominentColor) : 0) ||
       (newestFirst ? timeOf(b) - timeOf(a) : timeOf(a) - timeOf(b))
