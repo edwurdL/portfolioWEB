@@ -75,6 +75,8 @@ export default function RobotControlsLibrary() {
         caption="The whole turning autotune: two open-loop spins to measure the drivetrain, then six verification turns"
       />
 
+      <Figure folder={FOLDER} file="autotune-turn.gif" caption="The robot auto-tuning its turning PID constants" />
+
       <p>
         <strong>Measure.</strong> The robot spins in place twice at two fixed power levels, with no
         feedback. From how quickly it speeds up and how fast it ends up turning, the autotune measures
@@ -117,6 +119,8 @@ export default function RobotControlsLibrary() {
         Odometry depends on knowing exactly where each tracking wheel sits on the chassis. Rather than
         measuring those offsets by hand, I made the library calibrate them automatically.
       </p>
+
+      <Figure folder={FOLDER} file="auto-offsets.gif" caption="The robot automatically finding its tracking wheel offsets" />
 
       <Figure folder={FOLDER} file="4-tracking-wheels.webp" caption="Tracking wheel placement" />
 
