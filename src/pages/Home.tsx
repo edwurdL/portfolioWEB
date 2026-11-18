@@ -7,8 +7,8 @@ import { projectPhoto } from '../lib/projectPhotos'
 import { createPhoto } from '../types'
 import type { Photo } from '../types'
 import { PROJECTS, STATUS_LABEL, TitleWithIcon } from './Projects'
-import { POSTS, postBySlug } from '../posts'
-import { TERMS } from './Coursework'
+import { POSTS, postBySlug, postForProject } from '../posts'
+import { TERMS, courseAnchor } from './Coursework'
 import { MOCK as MOCK_PHOTOS } from './Photos'
 // Bio text lives in /aboutme.txt at the project root — edit that file and
 // rebuild; blank lines between blocks render as separate paragraphs.
@@ -171,7 +171,6 @@ const PHOTO_PLACEHOLDER: Preview = {
 /** Left-rail table of contents; each entry scrolls its section into view. */
 const PAGE_SECTIONS = [
   { id: 'about', label: 'About' },
-  { id: 'contacts', label: 'Contacts' },
   { id: 'featured', label: 'Featured' },
   { id: 'explore', label: 'Explore' },
 ]
@@ -262,6 +261,60 @@ function PageNav() {
   )
 }
 
+// "Now" reads from the same data as the Projects and Coursework pages, so it
+// stays current as those are edited: in-progress projects and this term's classes.
+const BUILDING = PROJECTS.filter(p => p.status === 'in-progress')
+const CURRENT_TERM = TERMS.find(t => t.current)
+const nowLink = 'text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-600 hover:decoration-current'
+
+function NowPanel() {
+  return (
+    <aside aria-labelledby="now" className="mt-10 lg:mt-0 lg:w-[26rem] border-t border-zinc-900 dark:border-zinc-100 pt-4">
+      <h2 id="now" className="font-serif text-2xl tracking-tight text-zinc-900 dark:text-zinc-100">Now</h2>
+      <dl className="mt-4 grid grid-cols-[5rem_minmax(0,1fr)] gap-x-4 gap-y-3 text-sm leading-relaxed">
+        {BUILDING.length > 0 && (
+          <>
+            <dt className="text-zinc-500 dark:text-zinc-400">Building</dt>
+            <dd className="flex flex-col">
+              {BUILDING.map(p => {
+                const post = postForProject(p.id)
+                return post ? (
+                  <Link key={p.id} to={`/projects/${post.slug}`} className={`self-start ${nowLink}`}>{p.title}</Link>
+                ) : (
+                  <span key={p.id} className="text-zinc-900 dark:text-zinc-100">{p.title}</span>
+                )
+              })}
+            </dd>
+          </>
+        )}
+        {CURRENT_TERM && (
+          <>
+            <dt className="text-zinc-500 dark:text-zinc-400">Taking</dt>
+            <dd className="flex flex-col">
+              {CURRENT_TERM.courses.map(c => (
+                <Link key={c.code} to={`/coursework#${courseAnchor(c.code)}`} className={`self-start ${nowLink}`}>
+                  {c.code}, {c.name}
+                </Link>
+              ))}
+            </dd>
+          </>
+        )}
+        <dt className="text-zinc-500 dark:text-zinc-400">Contact</dt>
+        <dd className="flex flex-wrap gap-x-4 gap-y-1">
+          {/* Plain text rather than a mailto link, so it can be copied by anyone
+              without a mail app set up. */}
+          <span className="text-zinc-900 dark:text-zinc-100 select-all">{EMAIL}</span>
+          {CONTACTS.map(({ label, href }) => (
+            <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={nowLink}>
+              {label}
+            </a>
+          ))}
+        </dd>
+      </dl>
+    </aside>
+  )
+}
+
 /** A section's title, sitting on a full-width rule like a catalogue heading. */
 function SectionHeading({ children }: { children: string }) {
   return (
@@ -291,7 +344,8 @@ export default function Home() {
     <div className="frame xl:grid xl:grid-cols-[9rem_minmax(0,1fr)] xl:gap-10">
       <PageNav />
       <main className="min-w-0 pt-14 pb-16 sm:pt-20">
-        <section id="about" className="scroll-mt-20 flex items-end gap-6 sm:gap-10 mb-10">
+        <section id="about" className="scroll-mt-20 mb-10 lg:flex lg:items-end lg:justify-between lg:gap-12">
+          <div className="flex items-end gap-6 sm:gap-10">
           <img
             src={profileImg}
             alt="Eddie Lai"
@@ -303,6 +357,8 @@ export default function Home() {
             </h1>
             <p className="mt-3 text-zinc-500 dark:text-zinc-400">CompE @ University of Michigan</p>
           </div>
+          </div>
+          <NowPanel />
         </section>
 
         <div className="mb-20 max-w-[60ch] flex flex-col gap-4">
@@ -312,26 +368,6 @@ export default function Home() {
             </p>
           ))}
         </div>
-
-        <section id="contacts" className="scroll-mt-20 mb-20">
-          <SectionHeading>Contacts</SectionHeading>
-          <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
-            {/* Plain text rather than a mailto link, so it can be copied by anyone
-                without a mail app set up. */}
-            <span className="text-zinc-900 dark:text-zinc-100 select-all">{EMAIL}</span>
-            {CONTACTS.map(({ label, href }) => (
-              <a
-                key={label}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-300 dark:decoration-zinc-600 hover:decoration-current transition-colors"
-              >
-                {label}
-              </a>
-            ))}
-          </div>
-        </section>
 
         <section id="featured" className="scroll-mt-20 mb-20">
           <SectionHeading>Featured projects</SectionHeading>

@@ -150,7 +150,7 @@ export const PROJECTS: ProjectEntry[] = [
   },
   {
     id: '12',
-    cover: projectPhoto('custom-omni-wheels', '2-on-robot.webp'),
+    cover: projectPhoto('custom-omni-wheels', '6-lineup.webp'),
     title: 'Custom Ball-Bearing Omni Wheels',
     category: 'robotics',
     date: 'Dec 2024 – Aug 2025',
